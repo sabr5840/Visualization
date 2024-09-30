@@ -20,7 +20,7 @@ The visualization helps in understanding how these operations affect the tree st
 
 ## Live Demo
 
-You can view a live demo of the project [here](https://sabr5840.github.io/Red-Black-Tree-Visualization/).
+You can view a live demo of the project [here](https://sabr5840.github.io/Visualization/).
 
 
 ## Project Structure

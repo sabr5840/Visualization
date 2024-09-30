@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Red-Black Tree Visualization</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>⚫️ 🔴 Red-Black Tree Visualization ⚫️ 🔴</h1>
+    <div id="container">
+        <div id="tree"></div>
+        <div id="infoBox">
+            <h2>The Basic Rules for red-black trees</h2>
+            <ul>
+                <li><strong>Root Color: </strong>The root of the tree must always be black.</li>
+                <li><strong>No Two Red Notes Together: </strong> A red node must not have a red parent.</li>
+                <li><strong>Black Height: </strong> Each path from a node to its null node (leaves) must have the same number of black nodes. Red notes are not counted in this height.</li>
+                <li><strong>Null nodes: </strong>All null nodes (leaves) are black.</li>
+                <li><strong>New Nodes Are Red: </strong> When you insert a new node, it is colored red by default.</li>
+            </ul>
+        </div>
+    </div>
+    <input type="number" id="nodeValue" placeholder="Enter node value">
+    <div class="button-container">
+        <button onclick="insertNode()">Insert Node</button>
+        <button onclick="deleteNode()">Delete Node</button>
+        <button onclick="searchNode()">Search Node</button>
+    </div>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

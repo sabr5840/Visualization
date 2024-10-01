@@ -397,22 +397,21 @@ function searchNode() {
 
     let currentNode = tree.root;
 
-    // Create or select the SVG highlight circle and set it to red initially
+    // Create or select the SVG circle for highlighting
     let svg = document.getElementById('highlightCircle');
     if (!svg) {
         svg = document.createElementNS("http://www.w3.org/2000/svg", "circle");
         svg.setAttribute("id", "highlightCircle");
         svg.setAttribute("r", 20); // Circle radius
         svg.setAttribute("fill", "none");
-        svg.setAttribute("stroke", "red"); // Set the stroke to red at the start
+        svg.setAttribute("stroke", "red"); // Initial stroke color is red
         svg.setAttribute("stroke-width", 4);
-        document.querySelector('svg').appendChild(svg); // Assuming your tree is rendered inside an SVG
-    } else {
-        svg.setAttribute("stroke", "red"); // Reset circle to red at the start
+        document.querySelector('svg').appendChild(svg);
     }
 
-    function traverse(node) {
-        if (!node) return;
+    // Funktionsdefinering for at traversere træet
+    function traverse(node, parentElement) {
+        if (!node) return; // Stop, hvis noden er null
 
         const nodeElement = document.getElementById(`node-${node.value}`);
         if (!nodeElement) {
@@ -420,64 +419,92 @@ function searchNode() {
             return;
         }
 
-        const originalColor = node.color === 'red' ? 'red' : 'black'; // Store the original color
+        const originalColor = node.color === 'red' ? 'red' : 'black'; // Gem den oprindelige farve
 
-        // Move the red circle to the current node position
-        moveHighlightTo(svg, nodeElement);
+        // Animerer bevægelsen fra parent node til current node
+        if (parentElement) {
+            moveHighlightTo(svg, parentElement, nodeElement, 1000); // Bevæger cirklen over 1000ms
+        } else {
+            // Hvis vi er ved roden, så placér cirklen der
+            moveHighlightTo(svg, null, nodeElement, 0); // Ingen bevægelse (cirkel starter her)
+        }
 
+        // Timer, som venter 2 sekunder på, at cirklen stopper ved noden
         setTimeout(() => {
-            clearBlink(nodeElement, originalColor); // Restore original color
-
-            // If the node matches the target value
+            // Hvis det er den rigtige node, skift cirklens farve til grøn og lav blinkende effekt
             if (node.value === targetValue) {
-                // Change the circle color to green for the target node
-                svg.setAttribute("stroke", "green");
-
-                // Target node found, blink green
                 nodeElement.classList.add('blink-green');
+                svg.setAttribute("stroke", "green"); // Skift cirklen til grøn
 
-                // Remove the circle after the search is complete
+                // Fjern cirklen efter blink er færdig
                 setTimeout(() => {
-                    svg.remove(); // Remove the circle
-                    clearBlink(nodeElement, originalColor); // Restore the node color
-                }, 3000); // Adjust timing as necessary
+                    svg.remove(); // Fjern cirklen, når blinket er færdigt
+                    clearBlink(nodeElement, originalColor); // Gendan nodens originale farve
+                }, 1500); // Hold cirklen grøn i 1,5 sekunder
 
-                return; // Stop further traversal
+                return; // Stop traversal, når den rette node er fundet
             }
 
-            // Continue traversing the tree after a short delay
-            setTimeout(() => {
-                clearBlink(nodeElement, originalColor); // Clear any remaining effects
-
-                if (targetValue < node.value && node.left) {
-                    traverse(node.left); // Move to left child
-                } else if (targetValue > node.value && node.right) {
-                    traverse(node.right); // Move to right child
-                } else {
-                    console.log("Node not found");
-                    svg.remove(); // Remove the circle when node is not found
-                }
-            }, 1000); // Delay before continuing to the next node
-        }, 1000); // Delay for each node
+            // Hvis ikke den rigtige node, fortsæt søgningen
+            const nextNode = targetValue < node.value ? node.left : node.right;
+            traverse(nextNode, nodeElement); // Traversér videre til venstre eller højre child
+        }, 2000); // Stop ved noden i 2 sekunder før næste node evalueres
     }
 
-    traverse(currentNode);
+    traverse(currentNode, null); // Start traversal fra roden
 }
 
 
 
-function moveHighlightTo(circle, nodeElement) {
-    const nodeElementSelection = d3.select(`#${nodeElement.id}`);
-    const x = nodeElementSelection.attr('cx');
-    const y = nodeElementSelection.attr('cy');
-    
-    // Set the position of the circle using the same cx and cy as the node
-    circle.setAttribute("cx", x);
-    circle.setAttribute("cy", y);
-    
-    // Set the circle's radius to fit around the node
-    circle.setAttribute("r", parseInt(nodeElementSelection.attr('r')) + 1);  // Adjust to fit better
+function moveHighlightTo(circle, startNodeElement, endNodeElement, duration = 1000) {
+    // Hvis det er første node (roden), flyt cirklen der direkte
+    if (!startNodeElement) {
+        const endX = parseFloat(endNodeElement.getAttribute('cx'));
+        const endY = parseFloat(endNodeElement.getAttribute('cy'));
+        circle.setAttribute("cx", endX);
+        circle.setAttribute("cy", endY);
+        return;
+    }
+
+    // Ellers interpolér bevægelsen fra start til slut
+    const startX = parseFloat(startNodeElement.getAttribute('cx'));
+    const startY = parseFloat(startNodeElement.getAttribute('cy'));
+    const endX = parseFloat(endNodeElement.getAttribute('cx'));
+    const endY = parseFloat(endNodeElement.getAttribute('cy'));
+
+    const deltaX = endX - startX;
+    const deltaY = endY - startY;
+
+    const frames = 60; // Antal frames for animationen
+    const frameDuration = duration / frames;
+
+    let currentFrame = 0;
+
+    function animateStep() {
+        if (currentFrame < frames) {
+            const progress = currentFrame / frames;
+
+            // Interpolerer mellem start- og slutpositioner
+            const currentX = startX + deltaX * progress;
+            const currentY = startY + deltaY * progress;
+
+            // Opdaterer cirklens position
+            circle.setAttribute("cx", currentX);
+            circle.setAttribute("cy", currentY);
+
+            currentFrame++;
+            setTimeout(animateStep, frameDuration);
+        } else {
+            // Sørger for, at cirklen lander præcis på slutpositionen
+            circle.setAttribute("cx", endX);
+            circle.setAttribute("cy", endY);
+        }
+    }
+
+    animateStep(); // Start animationen
 }
+
+
 
 function clearBlink(nodeElement, originalColor) {
     nodeElement.classList.remove('blink-red', 'blink-green');

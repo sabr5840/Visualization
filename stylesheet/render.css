@@ -1,3 +1,4 @@
+/* General styles for rendering the tree and layout */
 body {
     font-family: Arial, sans-serif;
     margin: 20px;
@@ -108,35 +109,6 @@ button:active {
     margin-top: 20px;
 }
 
-.blink {
-    animation: blink-animation 0.5s steps(2, start) 10;
-}
-
-
-@keyframes blink-animation {
-    50% {
-        fill: initial;
-    }
-    50% {
-        fill: yellow;
-    }
-    100% {
-        fill: initial;
-    }
-}
-
-@keyframes blink {
-    0% {
-        background-color: yellow;
-    }
-    50% {
-        background-color: green;
-    }
-    100% {
-        background-color: yellow;
-    }
-}
-
 #tree {
     border: 1px solid #d8d6d6;
     width: 100%;
@@ -146,7 +118,6 @@ button:active {
     justify-content: center;
     align-items: center;
 }
-
 
 @media (max-width: 768px) {
     #tree {
@@ -160,27 +131,8 @@ button:active {
     }
 }
 
-
 .null-node {
     background-color: black;
     color: white;
     border: 1px dashed white;
 }
-
-/* Green blinking effect for the target node */
-.blink-green {
-    animation: blink-green 0.5s steps(1, start) 10; /* Longer green blink with multiple blinks */
-}
-
-/* Keyframes for green blink */
-@keyframes blink-green {
-    50% {
-        fill: green;
-    }
-    100% {
-        fill: initial; /* Reset back to the original color */
-    }
-}
-
-
-

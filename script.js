@@ -454,8 +454,6 @@ function searchNode() {
     traverse(currentNode, null); // Start traversal fra roden
 }
 
-
-
 function moveHighlightTo(circle, startNodeElement, endNodeElement, duration = 1000) {
     // Hvis det er første node (roden), flyt cirklen der direkte
     if (!startNodeElement) {
@@ -504,14 +502,10 @@ function moveHighlightTo(circle, startNodeElement, endNodeElement, duration = 10
     animateStep(); // Start animationen
 }
 
-
-
 function clearBlink(nodeElement, originalColor) {
     nodeElement.classList.remove('blink-red', 'blink-green');
     nodeElement.style.backgroundColor = originalColor; // Restore original background color
 }
-
-
 
 // This function visually highlights a node by making it blink for a short duration.
 function blinkNode(node) {

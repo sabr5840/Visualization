@@ -1,0 +1,15 @@
+/* Styles related to searching nodes */
+/* Green blinking effect for the target node */
+.blink-green {
+    animation: blink-green 0.5s steps(1, start) 10; /* Longer green blink with multiple blinks */
+}
+
+/* Keyframes for green blink */
+@keyframes blink-green {
+    50% {
+        fill: green;
+    }
+    100% {
+        fill: initial; /* Reset back to the original color */
+    }
+}

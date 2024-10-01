@@ -1,0 +1,28 @@
+/* Styles related to insertion */
+.blink {
+    animation: blink-animation 0.5s steps(2, start) 10;
+}
+
+@keyframes blink-animation {
+    50% {
+        fill: initial;
+    }
+    50% {
+        fill: yellow;
+    }
+    100% {
+        fill: initial;
+    }
+}
+
+@keyframes blink {
+    0% {
+        background-color: yellow;
+    }
+    50% {
+        background-color: green;
+    }
+    100% {
+        background-color: yellow;
+    }
+}

@@ -9,7 +9,13 @@
 <body>
     <h1>⚫️ 🔴 Red-Black Tree Visualization ⚫️ 🔴</h1>
     <div id="container">
-        <div id="tree"></div>
+        <!-- Tree visualization container -->
+        <div id="tree">
+            <!-- Add an SVG element inside the tree div -->
+            <svg width="100%" height="500px"></svg>
+        </div>
+
+        <!-- Info box for explaining the rules of Red-Black trees -->
         <div id="infoBox">
             <h2>The Basic Rules for red-black trees</h2>
             <ul>
@@ -21,12 +27,18 @@
             </ul>
         </div>
     </div>
+
+    <!-- Input field for node value -->
     <input type="number" id="nodeValue" placeholder="Enter node value">
+    
+    <!-- Buttons for tree operations -->
     <div class="button-container">
         <button onclick="insertNode()">Insert Node</button>
         <button onclick="deleteNode()">Delete Node</button>
         <button onclick="searchNode()">Search Node</button>
     </div>
+
+    <!-- Include the D3.js library and your script file -->
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="script.js"></script>
 </body>

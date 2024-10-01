@@ -388,21 +388,26 @@ function deleteNode() {
     renderTree(); // Render the tree to visualize the current state after deletion.
 }
 
-// Clears any blinking effect (removes red or green blink class)
-function clearBlink(nodeElement, originalColor) {
-    nodeElement.classList.remove('blink-red', 'blink-green');
-    // Restore the original color explicitly using style.fill for SVG
-    nodeElement.style.fill = originalColor; 
-}
-
 function searchNode() {
     const targetValue = parseInt(document.getElementById('nodeValue').value);
     if (isNaN(targetValue)) {
-        alert('Please enter a valid number.');
+        alert('Please enter a valid node value.');
         return;
     }
 
     let currentNode = tree.root;
+
+    // Create or select the SVG green circle for highlighting
+    let svg = document.getElementById('highlightCircle');
+    if (!svg) {
+        svg = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        svg.setAttribute("id", "highlightCircle");
+        svg.setAttribute("r", 20); // Circle radius
+        svg.setAttribute("fill", "none");
+        svg.setAttribute("stroke", "green");
+        svg.setAttribute("stroke-width", 4);
+        document.querySelector('svg').appendChild(svg); // Assuming your tree is rendered inside an SVG
+    }
 
     function traverse(node) {
         if (!node) return;
@@ -413,62 +418,71 @@ function searchNode() {
             return;
         }
 
-        const originalColor = node.color === 'red' ? 'red' : 'black'; // Store the original color of the node
+        const originalColor = node.color === 'red' ? 'red' : 'black'; // Store the original color
 
-        // Start red blink to indicate evaluation
+        // Start with red blink to indicate evaluation
         nodeElement.classList.add('blink-red');
 
-        setTimeout(() => {
-            clearBlink(nodeElement, originalColor); // Clear red blink and restore color
+        // Move the green circle to the current node position
+        moveHighlightTo(svg, nodeElement);
 
+        setTimeout(() => {
+            clearBlink(nodeElement, originalColor); // Clear red blink and restore original color
+
+            // If the node matches the target value
             if (node.value === targetValue) {
                 // Target node found, blink green
                 nodeElement.classList.add('blink-green');
 
-                // Gendan den oprindelige farve efter det grønne blink
+                // Remove the circle after the search is complete
                 setTimeout(() => {
-                    clearBlink(nodeElement, originalColor); // Restore original color after green blink
-                }, 1000); // Blink grønt i 1 sekund
+                    svg.remove(); // Remove the circle
+                    clearBlink(nodeElement, originalColor); // Restore the node color
+                }, 1000); // Adjust timing as necessary
 
-                return;
+                return; // Stop further traversal
             }
 
-            // Node is not the target, proceed to the next one
+            // Node is not the target, move to the next node after the blink
+            nodeElement.classList.add('blink-green');
             setTimeout(() => {
-                clearBlink(nodeElement, originalColor); // Clear green blink and restore color
+                clearBlink(nodeElement, originalColor); // Clear green blink
 
                 if (targetValue < node.value && node.left) {
-                    traverse(node.left); // Move to the left child
+                    traverse(node.left); // Move to left child
                 } else if (targetValue > node.value && node.right) {
-                    traverse(node.right); // Move to the right child
+                    traverse(node.right); // Move to right child
                 } else {
                     console.log("Node not found");
+                    svg.remove(); // Remove the circle when the node is not found
                 }
-            }, 1000); // Delay to show green blink
-        }, 1000); // Delay to show red blink
+            }, 1000); // Delay for green blink effect
+        }, 1000); // Delay for red blink effect
     }
-
     traverse(currentNode);
 }
 
 
-
-// Function to move the search highlight to the next node
-function moveHighlightTo(nodeElement) {
-    d3.select(nodeElement)
-        .transition()
-        .duration(500)
-        .attr('stroke-width', 5) // Highlight with thicker stroke
-        .attr('stroke', 'green'); // Change the stroke to green
-
-    setTimeout(() => {
-        d3.select(nodeElement)
-            .transition()
-            .duration(500)
-            .attr('stroke-width', 2) // Revert stroke width
-            .attr('stroke', 'black'); // Revert the stroke color
-    }, 1000);
+function moveHighlightTo(circle, nodeElement) {
+    const nodeElementSelection = d3.select(`#${nodeElement.id}`);
+    const x = nodeElementSelection.attr('cx');
+    const y = nodeElementSelection.attr('cy');
+    
+    // Set the position of the circle using the same cx and cy as the node
+    circle.setAttribute("cx", x);
+    circle.setAttribute("cy", y);
+    
+    // Set the circle's radius to fit around the node
+    circle.setAttribute("r", parseInt(nodeElementSelection.attr('r')) + 1);  // Adjust to fit better
 }
+
+
+
+function clearBlink(nodeElement, originalColor) {
+    nodeElement.classList.remove('blink-red', 'blink-green');
+    nodeElement.style.backgroundColor = originalColor; // Restore original background color
+}
+
 
 
 // This function visually highlights a node by making it blink for a short duration.

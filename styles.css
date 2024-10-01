@@ -167,24 +167,9 @@ button:active {
     border: 1px dashed white;
 }
 
-/* Red blinking effect */
-.blink-red {
-    animation: blink-red 1s steps(1, start) forwards;
-}
-
-/* Green blinking effect */
+/* Green blinking effect for the target node */
 .blink-green {
-    animation: blink-green 1s steps(1, start) forwards;
-}
-
-/* Keyframes for red blink */
-@keyframes blink-red {
-    50% {
-        fill: red;
-    }
-    100% {
-        fill: initial; /* At the end, reset back */
-    }
+    animation: blink-green 0.5s steps(1, start) 10; /* Longer green blink with multiple blinks */
 }
 
 /* Keyframes for green blink */
@@ -193,7 +178,9 @@ button:active {
         fill: green;
     }
     100% {
-        fill: initial; /* At the end, reset back */
+        fill: initial; /* Reset back to the original color */
     }
 }
+
+
 

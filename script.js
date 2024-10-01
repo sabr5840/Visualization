@@ -397,16 +397,18 @@ function searchNode() {
 
     let currentNode = tree.root;
 
-    // Create or select the SVG green circle for highlighting
+    // Create or select the SVG highlight circle and set it to red initially
     let svg = document.getElementById('highlightCircle');
     if (!svg) {
         svg = document.createElementNS("http://www.w3.org/2000/svg", "circle");
         svg.setAttribute("id", "highlightCircle");
         svg.setAttribute("r", 20); // Circle radius
         svg.setAttribute("fill", "none");
-        svg.setAttribute("stroke", "green");
+        svg.setAttribute("stroke", "red"); // Set the stroke to red at the start
         svg.setAttribute("stroke-width", 4);
         document.querySelector('svg').appendChild(svg); // Assuming your tree is rendered inside an SVG
+    } else {
+        svg.setAttribute("stroke", "red"); // Reset circle to red at the start
     }
 
     function traverse(node) {
@@ -420,17 +422,17 @@ function searchNode() {
 
         const originalColor = node.color === 'red' ? 'red' : 'black'; // Store the original color
 
-        // Start with red blink to indicate evaluation
-        nodeElement.classList.add('blink-red');
-
-        // Move the green circle to the current node position
+        // Move the red circle to the current node position
         moveHighlightTo(svg, nodeElement);
 
         setTimeout(() => {
-            clearBlink(nodeElement, originalColor); // Clear red blink and restore original color
+            clearBlink(nodeElement, originalColor); // Restore original color
 
             // If the node matches the target value
             if (node.value === targetValue) {
+                // Change the circle color to green for the target node
+                svg.setAttribute("stroke", "green");
+
                 // Target node found, blink green
                 nodeElement.classList.add('blink-green');
 
@@ -438,15 +440,14 @@ function searchNode() {
                 setTimeout(() => {
                     svg.remove(); // Remove the circle
                     clearBlink(nodeElement, originalColor); // Restore the node color
-                }, 1000); // Adjust timing as necessary
+                }, 3000); // Adjust timing as necessary
 
                 return; // Stop further traversal
             }
 
-            // Node is not the target, move to the next node after the blink
-            nodeElement.classList.add('blink-green');
+            // Continue traversing the tree after a short delay
             setTimeout(() => {
-                clearBlink(nodeElement, originalColor); // Clear green blink
+                clearBlink(nodeElement, originalColor); // Clear any remaining effects
 
                 if (targetValue < node.value && node.left) {
                     traverse(node.left); // Move to left child
@@ -454,13 +455,15 @@ function searchNode() {
                     traverse(node.right); // Move to right child
                 } else {
                     console.log("Node not found");
-                    svg.remove(); // Remove the circle when the node is not found
+                    svg.remove(); // Remove the circle when node is not found
                 }
-            }, 1000); // Delay for green blink effect
-        }, 1000); // Delay for red blink effect
+            }, 1000); // Delay before continuing to the next node
+        }, 1000); // Delay for each node
     }
+
     traverse(currentNode);
 }
+
 
 
 function moveHighlightTo(circle, nodeElement) {
@@ -475,8 +478,6 @@ function moveHighlightTo(circle, nodeElement) {
     // Set the circle's radius to fit around the node
     circle.setAttribute("r", parseInt(nodeElementSelection.attr('r')) + 1);  // Adjust to fit better
 }
-
-
 
 function clearBlink(nodeElement, originalColor) {
     nodeElement.classList.remove('blink-red', 'blink-green');

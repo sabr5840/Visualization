@@ -294,83 +294,127 @@ const tree = new RedBlackTree();
 function insertNode() {
     const value = document.getElementById('nodeValue').value; // Get the value from the input field with the id 'nodeValue'.
 
-     // Check if the value is not provided or is not a number.
+    // Check if the value is not provided or is not a number.
     if (!value || isNaN(value)) {
-        // Alert the user to enter a valid number.
         alert('Please enter a valid number.');
         return;
     }
-    // Insert the value (converted to a number) into the Red-Black Tree.
-    tree.insert(Number(value));
-    renderTree(); // Render the tree to visualize the current state after insertion.
+
+    // Start the animation by adding a red node on the top-left side
+    let newNodeElement = document.createElement('div');
+    newNodeElement.className = 'node new-node';  // Apply blinking effect with the new-node class
+    newNodeElement.style.position = 'absolute';
+    newNodeElement.style.left = '10px';  // Positioning at the top-left corner
+    newNodeElement.style.top = '10px';
+    newNodeElement.style.backgroundColor = 'red';
+    newNodeElement.style.transition = 'all 2s ease';  // Smooth transition
+    newNodeElement.innerText = value;
+
+    const container = document.getElementById('tree');
+    container.appendChild(newNodeElement);
+
+    // If this is the first node, just insert it directly without traversal
+    if (tree.root === null) {
+        setTimeout(() => {
+            container.removeChild(newNodeElement); // Remove the temporary node
+            tree.insert(Number(value));  // Insert the node into the tree
+            renderTree();  // Render the tree to visualize the new state
+        }, 3000);  // Insert the node after 3 seconds (for the visual blinking effect)
+        return;
+    }
+
+    // Step 1: Start the traversal animation
+    const traversalCircle = document.createElement('div');
+    traversalCircle.className = 'node traversal-node';  // A new class for the yellow traversal circle
+    traversalCircle.style.position = 'absolute';
+    traversalCircle.style.backgroundColor = 'yellow';
+    traversalCircle.style.borderRadius = '50%';
+    traversalCircle.style.transition = 'all 1s ease';  // Smooth movement
+    traversalCircle.style.width = '30px';
+    traversalCircle.style.height = '30px';
+
+    // Start traversal from the root
+    let current = tree.root;
+    const traverseTree = async () => {
+        while (current !== null) {
+            const currentNodeElement = document.getElementById(`node-${current.value}`);
+            const rect = currentNodeElement.getBoundingClientRect();
+
+            // Move the traversal circle to the current node position
+            traversalCircle.style.left = `${rect.left + rect.width / 2 - 60}px`;  
+            traversalCircle.style.top = `${rect.top + rect.height / 2 - 120}px`;
+
+            await new Promise(resolve => setTimeout(resolve, 1000));  // Wait for 1 second before continuing
+
+            if (value < current.value) {
+                current = current.left;
+            } else {
+                current = current.right;
+            }
+        }
+
+        // Once the correct position is found (current is null), remove traversal circle
+        container.removeChild(traversalCircle);
+
+        // Step 2: After traversal, remove the new node blinking at the top-left
+        container.removeChild(newNodeElement);
+
+        // Insert the new node into the tree
+        tree.insert(Number(value));
+        renderTree();  // Render the updated tree with the new node inserted
+    };
+
+    // Append the traversal circle to the DOM and start the animation
+    container.appendChild(traversalCircle);
+    traverseTree();
 }
+
+
 
 // This function renders a node of the Red-Black Tree and its connections in the DOM.
 function renderNode(node, container, parentNode, isLeft) {
-     // Create a new div element to represent the current node.
+    console.log("Rendering node: ", node.value); // Add this to check node rendering
+    
     const element = document.createElement('div');
-    element.className = 'node'; // Set the CSS class for styling.
-    element.id = `node-${node.value}`; // Set a unique ID for the node.
-    element.innerText = node.value; // Set the text to display the node's value.
-   
-    // Set the background and text color based on the node's color.
+    element.className = 'node';
+    element.id = `node-${node.value}`;
+    element.innerText = node.value;
     element.style.backgroundColor = node.color === 'red' ? 'red' : 'black';
     element.style.color = node.color === 'red' ? 'black' : 'white';
     
-    // Append the node element to the container.
     container.appendChild(element);
     
-     // If there's a parent node, draw a line connecting this node to its parent.
     if (parentNode) {
-        // Create a div for the connecting line.
         const line = document.createElement('div');
-        line.className = 'line'; // Set the CSS class for styling.
-
-        // Get bounding rectangles of the parent and the current node.
+        line.className = 'line';
         const parentRect = parentNode.getBoundingClientRect();
-        const elementRect = element.getBoundingClientRect();
         const containerRect = container.getBoundingClientRect();
+        
+        console.log('Parent Rect:', parentRect);
 
-        // Calculate the positions for the line to connect the parent and the current node.
-        const parentCenterX = parentRect.left + parentRect.width / 2 - containerRect.left;
-        const parentBottomY = parentRect.bottom - containerRect.top;
-        const elementCenterX = elementRect.left + elementRect.width / 2 - containerRect.left;
-        const elementTopY = elementRect.top - containerRect.top;
+        // Initial positioning for the new node
+        element.style.position = 'absolute';
+        element.style.left = `${parentRect.right + 50}px`;  // Offset to the right
+        element.style.top = `${parentRect.top}px`;  // Same vertical position as the parent
 
-        // Set the line's position and size.
-        line.style.left = `${parentCenterX}px`;
-        line.style.top = `${parentBottomY}px`;
-        line.style.height = `${elementTopY - parentBottomY}px`;
+        // Move the new node to its final position
+        setTimeout(() => {
+            const elementRect = element.getBoundingClientRect();
+            console.log('New Node Initial Position:', elementRect);
 
-        // Adjust line's horizontal position based on whether the node is a left or right child.
-        line.style.transform = `translateX(${isLeft ? -50 : 50}%)`;
+            const parentCenterX = parentRect.left + parentRect.width / 2 - containerRect.left;
+            const parentBottomY = parentRect.bottom - containerRect.top;
+            const elementTopY = elementRect.top - containerRect.top;
 
-        // Append the line to the container.
-        container.appendChild(line);
-    }
+            element.style.transition = 'left 1s, top 1s';
+            element.style.left = `${parentCenterX - (isLeft ? 50 : -50)}px`;
+            element.style.top = `${parentBottomY + 50}px`;
 
-    // Create containers for the left and right children of the current node.
-    const leftContainer = document.createElement('div');
-    leftContainer.className = 'left-container';// Set the CSS class for styling.
-    const rightContainer = document.createElement('div');
-    rightContainer.className = 'right-container';// Set the CSS class for styling.
-
-    // Append the left and right containers to the current container.
-    container.appendChild(leftContainer);
-    container.appendChild(rightContainer);
-
-     // Recursively render the left child if it exists; otherwise, render a null node placeholder.
-    if (node.left) {
-        renderNode(node.left, leftContainer, element, true);
-    } else {
-        renderNullNode(leftContainer, element, true);
-    }
-    
-    // Recursively render the right child if it exists; otherwise, render a null node placeholder.
-    if (node.right) {
-        renderNode(node.right, rightContainer, element, false);
-    } else {
-        renderNullNode(rightContainer, element, false);
+            console.log('New Node Final Position:', {
+                left: element.style.left,
+                top: element.style.top
+            });
+        }, 500);
     }
 }
 
@@ -524,48 +568,6 @@ function blinkNode(node) {
     }, 5000); // 5 seconds
 }
 
-// This function renders a placeholder for a null node (often represented as 'NIL') in the tree.
-function renderNullNode(container, parentNode, isLeft) {
-    const nullNode = document.createElement('div'); // Create a new div element to represent the null node.
-    nullNode.className = 'node null-node'; // Set the CSS class for styling the null node.
-    nullNode.innerText = 'NIL'; // Set the text to 'NIL' to indicate a null node.
-    
-    nullNode.style.backgroundColor = 'black'; // Set the background color to black.
-    nullNode.style.color = 'white'; // Set the text color to white for contrast.
-    nullNode.style.width = '30px';
-    nullNode.style.height = '30px';
-
-    // Append the null node element to the specified container.
-    container.appendChild(nullNode);
-
-    // If there's a parent node, draw a line connecting this null node to its parent.
-    if (parentNode) {
-        // Create a div element to represent the connecting line.
-        const line = document.createElement('div');
-        line.className = 'line'; // Set the CSS class for styling the line.
-
-        // Get bounding rectangles of the parent node and the null node.
-        const parentRect = parentNode.getBoundingClientRect();
-        const nullNodeRect = nullNode.getBoundingClientRect();
-        const containerRect = container.getBoundingClientRect();
-
-        // Calculate the positions for the line to connect the parent node to the null node.
-        const parentCenterX = parentRect.left + parentRect.width / 2 - containerRect.left;
-        const parentBottomY = parentRect.bottom - containerRect.top;
-        const nullNodeCenterX = nullNodeRect.left + nullNodeRect.width / 2 - containerRect.left;
-        const nullNodeTopY = nullNodeRect.top - containerRect.top;
-
-        // Set the line's position and size.
-        line.style.left = `${parentCenterX}px`;
-        line.style.top = `${parentBottomY}px`;
-        line.style.height = `${nullNodeTopY - parentBottomY}px`;
-
-        // Adjust the line's horizontal position based on whether the null node is a left or right child.
-        line.style.transform = `translateX(${isLeft ? -50 : 50}%)`;
-        container.appendChild(line); // Append the line to the container.
-    }
-}
-
 // This function visualizes the Red-Black Tree and optionally highlights a specific node.
 function renderTree(foundNode = null) {
 
@@ -573,7 +575,6 @@ function renderTree(foundNode = null) {
     const treeContainer = document.getElementById('tree');
     treeContainer.innerHTML = '';
     
-
     // Get the dimensions of the container for setting up the SVG.
     const width = treeContainer.clientWidth;
     const height = treeContainer.clientHeight;
@@ -592,20 +593,12 @@ function renderTree(foundNode = null) {
             if (node.left !== null) {
                 links.push({ source: { x, y }, target: { x: x - xOffset, y: y + 50 } });
                 traverse(node.left, x - xOffset, y + 50, level + 1, xOffset / 1.5);
-            } else {
-                // Handle the case where the left child is null.
-                nodes.push({ node: { value: 'NIL', color: 'black' }, x: x - xOffset, y: y + 50 });
-                links.push({ source: { x, y }, target: { x: x - xOffset, y: y + 50 } });
             }
             
             // If the right child exists, add a link and recursively traverse it.
             if (node.right !== null) {
                 links.push({ source: { x, y }, target: { x: x + xOffset, y: y + 50 } });
                 traverse(node.right, x + xOffset, y + 50, level + 1, xOffset / 1.5);
-            } else {
-                // Handle the case where the right child is null.
-                nodes.push({ node: { value: 'NIL', color: 'black' }, x: x + xOffset, y: y + 50 });
-                links.push({ source: { x, y }, target: { x: x + xOffset, y: y + 50 } });
             }
         }
     }
@@ -626,7 +619,8 @@ function renderTree(foundNode = null) {
     const svgContainer = d3.select('#tree').append('svg')
         .attr('width', width)
         .attr('height', height)
-        .attr('viewBox', `${minX - 50} ${minY - 50} ${treeWidth + 100} ${treeHeight + 100}`);
+        .attr('viewBox', `0 0 ${width} ${height}`);
+
 
     // Render the links (edges) between nodes.
     const linkSelection = svgContainer.selectAll('line')
@@ -685,30 +679,6 @@ function renderTree(foundNode = null) {
         .attr('text-anchor', 'middle')
         .attr('fill', 'white')
         .text(d => d.node.value);
-
-    // Render the null nodes as rectangles.
-    svgContainer.selectAll('.null-node')
-        .data(nodes.filter(d => d.node.value === 'NIL'))
-        .enter()
-        .append('rect')
-        .attr('x', d => d.x - 15)
-        .attr('y', d => d.y - 15)
-        .attr('width', 30)
-        .attr('height', 30)
-        .attr('fill', 'black')
-        .attr('stroke', 'black')
-        .attr('stroke-width', 2);
-
-    // Add text labels to the null nodes.
-    svgContainer.selectAll('.null-node-text')
-        .data(nodes.filter(d => d.node.value === 'NIL'))
-        .enter()
-        .append('text')
-        .attr('x', d => d.x)
-        .attr('y', d => d.y + 4)
-        .attr('text-anchor', 'middle')
-        .attr('fill', 'white')
-        .text('NIL');
 
     // If a specific node is provided, make it blink.
     if (foundNode) {

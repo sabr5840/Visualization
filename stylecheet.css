@@ -1,0 +1,247 @@
+/* Styles related to insertion */
+.blink {
+    animation: blink-animation 0.5s steps(2, start) 10;
+}
+
+@keyframes blink-animation {
+    50% {
+        fill: initial;
+    }
+    50% {
+        fill: yellow;
+    }
+    100% {
+        fill: initial;
+    }
+}
+
+@keyframes blink {
+    0% {
+        background-color: yellow;
+    }
+    50% {
+        background-color: green;
+    }
+    100% {
+        background-color: yellow;
+    }
+}
+.new-node {
+    animation: blink-animation 0.5s infinite; /* Blink animation for the new node */
+}
+
+.yellow-circle {
+    animation: blink-animation 1s infinite; /* Blink animation for the yellow circle */
+}
+
+@keyframes blink-animation {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+/* General styles for rendering the tree and layout */
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    text-align: center;
+}
+
+h1 {
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+.node {
+    display: inline-block;
+    padding: 10px;
+    margin: 10px;
+    border-radius: 50%;
+    text-align: center;
+    font-weight: bold;
+    transition: background-color 0.5s, color 0.5s;
+}
+
+.line {
+    position: absolute;
+    background-color: black;
+    width: 2px;
+}
+
+.children {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+#container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 20px;
+}
+
+#infoBox {
+    border: 1px solid #d8d6d6;
+    padding: 15px;
+    width: 55%;
+    height: 531px;
+    overflow-y: auto;
+    box-sizing: border-box;
+    text-align: left;
+    line-height: 2.2;
+}
+
+#infoBox h2 {
+    margin-top: 45px;
+    margin-left: 30px;
+}
+
+#infoBox ul {
+    list-style-type: disc;
+    margin-left: 1px;
+}
+
+input[type="number"] {
+    display: block;
+    margin: 10px auto;
+    padding: 10px;
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+    width: calc(100% - 24px);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+    width: 50%;
+}
+
+input[type="number"]::placeholder {
+    color: #888;
+    font-style: italic;
+}
+
+button {
+    background-color: #9fa8b2;
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 5px;
+    cursor: pointer;
+    border-radius: 4px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s, box-shadow 0.3s;
+    margin-top: -100px;
+}
+
+button:hover {
+    background-color: #313335;
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+}
+
+button:active {
+    background-color: #424242;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.button-container {
+    text-align: center;
+    margin-top: 20px;
+}
+
+#tree {
+    border: 1px solid #d8d6d6;
+    width: 100%;
+    height: 530px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+@media (max-width: 768px) {
+    #tree {
+        height: 400px;
+    }
+}
+
+@media (max-width: 480px) {
+    #tree {
+        height: 300px;
+    }
+}
+
+.null-node {
+    background-color: black;
+    color: white;
+    border: 1px dashed white;
+}
+/* Styles related to searching nodes */
+/* Green blinking effect for the target node */
+.blink-green {
+    animation: blink-green 0.5s steps(1, start) 10; /* Longer green blink with multiple blinks */
+}
+
+/* Keyframes for green blink */
+@keyframes blink-green {
+    50% {
+        fill: green;
+    }
+    100% {
+        fill: initial; /* Reset back to the original color */
+    }
+}
+
+.new-node {
+    animation: blink-animation 0.5s infinite; /* Blink animation for the new node */
+}
+
+.yellow-circle {
+    animation: blink-animation 1s infinite; /* Blink animation for the yellow circle */
+}
+
+@keyframes blink-animation {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+.blinking {
+    animation: blink-animation 1s steps(2, start) infinite;
+}
+
+@keyframes blink-animation {
+    0% { opacity: 1; }
+    50% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+.highlight {
+    border: 2px solid yellow;
+}
+
+
+.traversal-node {
+    background-color: rgba(255, 255, 0, 0.3); /* Semi-transparent yellow */
+    border: 3px solid rgba(255, 255, 0, 0.6); /* Semi-transparent yellow border */
+    border-radius: 50%;            /* To make it circular */
+    position: absolute;
+    z-index: 1000;                 /* Make sure it stays on top */
+    transition: all 1s ease;       /* Smooth transition for animations */
+    opacity: 0.4;                             /* Additional overall transparency */
+
+}
+

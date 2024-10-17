@@ -26,3 +26,22 @@
         background-color: yellow;
     }
 }
+.new-node {
+    animation: blink-animation 0.5s infinite; /* Blink animation for the new node */
+}
+
+.yellow-circle {
+    animation: blink-animation 1s infinite; /* Blink animation for the yellow circle */
+}
+
+@keyframes blink-animation {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+    100% {
+        opacity: 1;
+    }
+}

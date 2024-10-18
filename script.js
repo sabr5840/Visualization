@@ -34,7 +34,7 @@ class RedBlackTree {
         node.parent = rightChild; //Sets rightChild as node's parent.
     }
 
-        //adjusts the tree structure to rotate the node to the right, which is  part of balancing the tree
+    //adjusts the tree structure to rotate the node to the right, which is  part of balancing the tree
     rotateRight(node) {
         let leftChild = node.left;
         node.left = leftChild.right;
@@ -55,43 +55,54 @@ class RedBlackTree {
 
     //handles  various cases that may occur after inserting a new node to ensure that the tree remains a Red-Black Tree with all its properties intact.
     fixInsertion(node) {
-        while (node !== this.root && node.parent.color === 'red') { //Continues fixing the tree as long as it is not the root and the parent is red.
-            if (node.parent === node.parent.parent.left) { //If the node's parent is the left child.
-                let uncle = node.parent.parent.right; //Finds the node's "uncle" (parent's sibling).
-                if (uncle !== null && uncle.color === 'red') { //if the uncle is red...
-                    node.parent.color = 'black'; //Sets the parent to black.
-                    uncle.color = 'black'; //Sets the uncle to black.
-                    node.parent.parent.color = 'red'; //Sets the grandparents to red.
-                    node = node.parent.parent; //Moves the node up the tree.
+        while (node !== this.root && node.parent.color === 'red') { 
+            if (node.parent === node.parent.parent.left) { 
+                let uncle = node.parent.parent.right; 
+                if (uncle !== null && uncle.color === 'red') { 
+                    node.parent.color = 'black'; 
+                    uncle.color = 'black';
+                    node.parent.parent.color = 'red'; 
+                    node = node.parent.parent; 
                 } else { // hvis uncle is not red...
-                    if (node === node.parent.right) { //If the node is the right child, we rotate the parent to the left.
+                    if (node === node.parent.right) { 
                         node = node.parent;
                         this.rotateLeft(node);
                     }
                     node.parent.color = 'black';
                     node.parent.parent.color = 'red';
-                    this.rotateRight(node.parent.parent); //Rotates the grandparents to the right.
+                    this.rotateRight(node.parent.parent); 
                 }
             } else { //If the node's parent is the right child.
-                let uncle = node.parent.parent.left; //Finds the node's "uncle" (parent's sibling).
-                if (uncle !== null && uncle.color === 'red') { //if uncle is red
+                let uncle = node.parent.parent.left; 
+                if (uncle !== null && uncle.color === 'red') {
                     node.parent.color = 'black';
                     uncle.color = 'black';
                     node.parent.parent.color = 'red';
                     node = node.parent.parent;
                 } else { //if the uncle is not red
-                    if (node === node.parent.left) { //If the node is the left child, we rotate the parent to the right...
+                    if (node === node.parent.left) { 
                         node = node.parent;
                         this.rotateRight(node);
                     }
                     node.parent.color = 'black';
                     node.parent.parent.color = 'red';
-                    this.rotateLeft(node.parent.parent); //Rotates the grandparent to the left.
+                    this.rotateLeft(node.parent.parent); 
                 }
             }
         }
-        this.root.color = 'black'; //Sets the root to black to ensure that the tree starts with a black root.
+        this.root.color = 'black';
     }
+
+    blinkYellow(node) {
+        const nodeElement = document.getElementById(`node-${node.value}`); // Get the DOM element for the node
+        if (nodeElement) {
+            nodeElement.classList.add('blink-yellow'); // Add the blinking class
+            setTimeout(() => {
+                nodeElement.classList.remove('blink-yellow'); // Remove the blinking class after 2 seconds
+            }, 2000); // Blink for 2 seconds
+        }
+    }
+    
 
     //Creating node
     insert(value) {
@@ -307,6 +318,9 @@ function insertNode() {
     newNodeElement.style.left = '10px';  // Positioning at the top-left corner
     newNodeElement.style.top = '10px';
     newNodeElement.style.backgroundColor = 'red';
+    newNodeElement.style.color = 'white';  // Set text color to white
+    newNodeElement.style.border = '2px solid black';  // Add a black border around the node
+    newNodeElement.style.borderRadius = '50%';  // Make the node circular
     newNodeElement.style.transition = 'all 2s ease';  // Smooth transition
     newNodeElement.innerText = value;
 
@@ -330,8 +344,9 @@ function insertNode() {
     traversalCircle.style.backgroundColor = 'yellow';
     traversalCircle.style.borderRadius = '50%';
     traversalCircle.style.transition = 'all 1s ease';  // Smooth movement
-    traversalCircle.style.width = '30px';
-    traversalCircle.style.height = '30px';
+    traversalCircle.style.width = '20px';
+    traversalCircle.style.height = '20px';
+
 
     // Start traversal from the root
     let current = tree.root;
@@ -341,10 +356,10 @@ function insertNode() {
             const rect = currentNodeElement.getBoundingClientRect();
 
             // Move the traversal circle to the current node position
-            traversalCircle.style.left = `${rect.left + rect.width / 2 - 60}px`;  
-            traversalCircle.style.top = `${rect.top + rect.height / 2 - 120}px`;
+            traversalCircle.style.left = `${rect.left + rect.width / 2 - 54}px`;  // Center the circle
+            traversalCircle.style.top = `${rect.top + rect.height / 2 - 115}px`;
 
-            await new Promise(resolve => setTimeout(resolve, 1000));  // Wait for 1 second before continuing
+            await new Promise(resolve => setTimeout(resolve, 5000));  // Wait for 1 second before continuing
 
             if (value < current.value) {
                 current = current.left;
@@ -368,8 +383,6 @@ function insertNode() {
     container.appendChild(traversalCircle);
     traverseTree();
 }
-
-
 
 // This function renders a node of the Red-Black Tree and its connections in the DOM.
 function renderNode(node, container, parentNode, isLeft) {
@@ -551,6 +564,7 @@ function clearBlink(nodeElement, originalColor) {
     nodeElement.style.backgroundColor = originalColor; // Restore original background color
 }
 
+
 // This function visually highlights a node by making it blink for a short duration.
 function blinkNode(node) {
     // Select all 'circle' elements within the '#tree' container and filter to find the circles representing the given node.
@@ -617,9 +631,9 @@ function renderTree(foundNode = null) {
 
     // Create and configure the SVG container for rendering the tree.
     const svgContainer = d3.select('#tree').append('svg')
-        .attr('width', width)
-        .attr('height', height)
-        .attr('viewBox', `0 0 ${width} ${height}`);
+    .attr('width', width)
+    .attr('height', height)
+    .attr('viewBox', `0 0 ${width} ${height}`);
 
 
     // Render the links (edges) between nodes.

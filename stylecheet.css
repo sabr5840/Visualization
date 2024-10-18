@@ -245,3 +245,46 @@ button:active {
 
 }
 
+.blink-yellow {
+    animation: blinkYellow 2s linear; /* Blink yellow for 2 seconds */
+  }
+  
+  @keyframes blinkYellow {
+    0% { background-color: yellow; }
+    50% { background-color: yellow; }
+    100% { background-color: yellow; }
+  }
+  
+
+  @keyframes pulse {
+    0% {
+      box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7); /* Start with a red glow */
+    }
+    70% {
+      box-shadow: 0 0 15px 15px rgba(255, 0, 0, 0); /* Expand the glow */
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); /* End with no glow */
+    }
+  }
+  
+  .node.pulse-red {
+    animation: pulse 1.5s infinite; /* Apply the pulse effect */
+  }
+  
+  @keyframes pulse-black {
+    0% {
+      box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.7); /* Start with a black glow */
+    }
+    70% {
+      box-shadow: 0 0 15px 15px rgba(0, 0, 0, 0); /* Expand the glow */
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(0, 0, 0, 0); /* End with no glow */
+    }
+  }
+  
+  .node.pulse-black {
+    animation: pulse-black 1.5s infinite;
+  }
+  

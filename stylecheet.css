@@ -13,6 +13,18 @@
     100% { fill: black; }       
 }
 
+@keyframes blinkBlack {
+    0% { background-color: grey; }
+    50% { background-color: rgb(0, 255, 247); }
+    100% { background-color: black; }
+}
+
+.blink-black {
+    animation: blinkBlack 1s ease-in-out 5; 
+    animation-fill-mode: forwards;  
+}
+
+
 @keyframes blink-green {
     0%, 100% { fill: green; }
     50% { fill: darkgreen; }
@@ -97,9 +109,7 @@
     animation: blink-green 1s infinite ease-in-out;
 }
 
-.blink-black {
-    animation: blinkBlack 1s infinite;
-}
+
 
 @keyframes blinkBlack {
     0% { background-color: black; }

@@ -15,35 +15,46 @@ class RedBlackTree {
         this.root = null; //Initializes root as null, which means the tree is initially empty
     }
 
-    // Insert the methods recolorRed and recolorBlack inside the class
     async recolorRed(node) {
         console.log(`Recoloring node ${node.value} to red`);
+        
+        const nodeElement = document.getElementById(`node-${node.value}`);
+        if (nodeElement) {
+            nodeElement.classList.add('blink-red');
+            console.log(`Node ${node.value} should be blinking red now...`);
+            await new Promise(resolve => setTimeout(resolve, 1000));  // Blink for 1 second
+            nodeElement.classList.remove('blink-red');
+            nodeElement.style.backgroundColor = 'red';  // Change to final red color
+            console.log(`Node ${node.value} recolored to red.`);
+        }
+    
         node.color = 'red';
         renderTree();
-
-        const nodeElement = document.getElementById(`node-${node.value}`);
-        if (nodeElement) {
-            nodeElement.classList.add('blink-red'); // Apply the red blink effect
-            await new Promise(resolve => setTimeout(resolve, 5000)); // Wait for the blink effect to finish
-            nodeElement.classList.remove('blink-red'); // Remove the blinking effect
-            nodeElement.style.backgroundColor = 'red'; // Ensure final color is set
-        }
     }
-
+    
     async recolorBlack(node) {
         console.log(`Recoloring node ${node.value} to black`);
-        node.color = 'black';
-        renderTree();
-
+        
+        // Skip recoloring if already black
+        if (node.color === 'black') {
+            console.log(`Node ${node.value} is already black. Skipping...`);
+            return;
+        }
+    
         const nodeElement = document.getElementById(`node-${node.value}`);
         if (nodeElement) {
-            nodeElement.style.transition = 'background-color 5s ease'; 
-            nodeElement.style.backgroundColor = 'black';
-            nodeElement.style.color = 'white';
-            await new Promise(resolve => setTimeout(resolve, 5000)); 
+            nodeElement.classList.add('blink-black');
+            console.log(`Node ${node.value} should be blinking black now...`);
+            await new Promise(resolve => setTimeout(resolve, 1000));  // Blink for 1 second
+            nodeElement.classList.remove('blink-black');
+            nodeElement.style.backgroundColor = 'black';  // Change to final black color
+            console.log(`Node ${node.value} recolored to black.`);
         }
+    
+        node.color = 'black';
+        renderTree();
     }
-
+     
     //adjusts the tree structure to rotate down to the left, which is part of balancing the tree.
     rotateLeft(node) {
         let rightChild = node.right; //Stores the node's right child in a variable rightChild.
@@ -84,71 +95,74 @@ class RedBlackTree {
 
     //handles  various cases that may occur after inserting a new node to ensure that the tree remains a Red-Black Tree with all its properties intact.
     async fixInsertion(node) {
-    while (node !== this.root && node.parent.color === 'red') {
-        if (node.parent === node.parent.parent.left) {
-            let uncle = node.parent.parent.right;
-            if (uncle !== null && uncle.color === 'red') {
-                console.log('Uncle is red, performing recoloring...');
-                await this.animateRecoloring(node.parent, uncle, node.parent.parent);
-                node.parent.color = 'black';
-                uncle.color = 'black';
-                node.parent.parent.color = 'red';
-                node = node.parent.parent;
-            } else {
-                if (node === node.parent.right) {
-                    node = node.parent;
-                    this.rotateLeft(node);
+        while (node !== this.root && node.parent.color === 'red') {
+            if (node.parent === node.parent.parent.left) {
+                let uncle = node.parent.parent.right;
+                if (uncle !== null && uncle.color === 'red') {
+                    console.log('Uncle is red, performing recoloring...');
+                    await this.animateRecoloring(node.parent, uncle, node.parent.parent);
+                    node.parent.color = 'black';
+                    uncle.color = 'black';
+                    node.parent.parent.color = 'red';
+                    node = node.parent.parent;
+                } else {
+                    if (node === node.parent.right) {
+                        node = node.parent;
+                        this.rotateLeft(node);
+                    }
+                    node.parent.color = 'black';
+                    node.parent.parent.color = 'red';
+                    this.rotateRight(node.parent.parent);
                 }
-                node.parent.color = 'black';
-                node.parent.parent.color = 'red';
-                this.rotateRight(node.parent.parent);
-            }
-        } else {
-            let uncle = node.parent.parent.left;
-            if (uncle !== null && uncle.color === 'red') {
-                console.log('Uncle is red, performing recoloring...');
-                await this.animateRecoloring(node.parent, uncle, node.parent.parent);
-                node.parent.color = 'black';
-                uncle.color = 'black';
-                node.parent.parent.color = 'red';
-                node = node.parent.parent;
             } else {
-                if (node === node.parent.left) {
-                    node = node.parent;
-                    this.rotateRight(node);
+                let uncle = node.parent.parent.left;
+                if (uncle !== null && uncle.color === 'red') {
+                    console.log('Uncle is red, performing recoloring...');
+                    await this.animateRecoloring(node.parent, uncle, node.parent.parent);
+                    node.parent.color = 'black';
+                    uncle.color = 'black';
+                    node.parent.parent.color = 'red';
+                    node = node.parent.parent;
+                } else {
+                    if (node === node.parent.left) {
+                        node = node.parent;
+                        this.rotateRight(node);
+                    }
+                    node.parent.color = 'black';
+                    node.parent.parent.color = 'red';
+                    this.rotateLeft(node.parent.parent);
                 }
-                node.parent.color = 'black';
-                node.parent.parent.color = 'red';
-                this.rotateLeft(node.parent.parent);
             }
         }
-    }
-    console.log('Ensuring root is black');
-    this.root.color = 'black';
-    await this.recolorBlack(this.root);  // Also update the DOM element for the root
 
+        console.log('Ensuring root is black');
+        await this.recolorBlack(this.root);  // Ensure root is black
     }
 
     // Async method to animate recoloring of parent, uncle, and grandparent
     async animateRecoloring(parent, uncle, grandparent) {
-        // Start by blinking parent and uncle red
+        // Start by blinking and recoloring parent node (Node 50)
+        console.log(`Starting recoloring for parent node ${parent.value}...`);
         await this.recolorRed(parent);
+        await this.blinkNode(parent, 'red');  // Ensure blinking before recoloring
+        await new Promise(resolve => setTimeout(resolve, 1000));  // Wait for blinking to finish
+        await this.recolorBlack(parent);  // Recolor to black after blink
+    
+        // Then blink and recolor uncle node (Node 150)
+        console.log(`Starting recoloring for uncle node ${uncle.value}...`);
         await this.recolorRed(uncle);
-
-        // Wait for 1 second before proceeding
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        // Recolor parent and uncle to black
-        await this.recolorBlack(parent);
+        await this.blinkNode(uncle, 'red');
+        await new Promise(resolve => setTimeout(resolve, 1000));  // Wait for blinking to finish
         await this.recolorBlack(uncle);
-
-        // Wait for 1 second before recoloring grandparent
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        // Recolor grandparent red
+    
+        // Finally, blink and recolor grandparent node (Node 100)
+        console.log(`Starting recoloring for grandparent node ${grandparent.value}...`);
         await this.recolorRed(grandparent);
+        await this.blinkNode(grandparent, 'red');
+        await new Promise(resolve => setTimeout(resolve, 1000));  // Wait for blinking to finish
+        await this.recolorBlack(grandparent);
     }
-
+    
     blinkYellow(node) {
         const nodeElement = document.getElementById(`node-${node.value}`); // Get the DOM element for the node
         if (nodeElement) {
@@ -347,6 +361,20 @@ class RedBlackTree {
         if (x !== null) x.color = 'black';  // Ensure 'x' is black.
     }
     
+
+    // Blink effect for a given node
+    async blinkNode(node, color) {
+    const nodeElement = document.getElementById(`node-${node.value}`);
+    if (nodeElement) {
+        const blinkClass = color === 'red' ? 'blink-red' : 'blink-black'; // Adjust blink class based on color
+        nodeElement.classList.add(blinkClass);
+        console.log(`Node ${node.value} should be blinking ${color} now...`);
+        await new Promise(resolve => setTimeout(resolve, 1000));  // Wait for blink effect to finish
+        nodeElement.classList.remove(blinkClass);
+        console.log(`Node ${node.value} stopped blinking.`);
+    }
+    }
+
     // This method searches for a node with the specified value in the Red-Black Tree.
     search(value) {
         return this.findNode(value); //Utilizes the findNode method to locate the node with the given value.
@@ -618,7 +646,6 @@ function clearBlink(nodeElement, originalColor) {
     nodeElement.classList.remove('blink-red', 'blink-green');
     nodeElement.style.backgroundColor = originalColor; // Restore original background color
 }
-
 
 // This function visually highlights a node by making it blink for a short duration.
 function blinkNode(node) {

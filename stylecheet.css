@@ -6,8 +6,11 @@
 }
 
 @keyframes blink-red {
-    0%, 100% { fill: red; }
-    50% { fill: darkred; }
+    0% { fill: red; }         
+    25% { fill: darkred; }     
+    50% { fill: grey; }         
+    75% { fill: lightgrey; }    
+    100% { fill: black; }       
 }
 
 @keyframes blink-green {
@@ -18,10 +21,6 @@
 /* General styles for blinking effects */
 .blink-yellow {
     animation: blink-yellow 1s infinite ease-in-out;
-}
-
-.blink-red {
-    animation: blink-red 1s infinite ease-in-out;
 }
 
 .blink-green {
@@ -89,9 +88,9 @@
     animation: pulse-black 1.5s infinite;
 }
 
-/* Styles for recoloring with blinking effects */
+
 .blink-red {
-    animation: blink-red 1s infinite ease-in-out;
+    animation: blink-red 1s ease-in-out 10; /* Adjust duration and add iteration count */
 }
 
 .blink-green {

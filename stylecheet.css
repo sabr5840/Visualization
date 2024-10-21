@@ -1,37 +1,47 @@
 /* Styles related to insertion */
-.blink {
-    animation: blink-animation 0.5s steps(2, start) 10;
+/* Blinking effects for recoloring */
+@keyframes blink-yellow {
+    0%, 100% { fill: yellow; }
+    50% { fill: black; }
 }
 
-@keyframes blink-animation {
-    50% {
-        fill: initial;
-    }
-    50% {
-        fill: yellow;
-    }
-    100% {
-        fill: initial;
-    }
+@keyframes blink-red {
+    0%, 100% { fill: red; }
+    50% { fill: darkred; }
 }
 
-@keyframes blink {
-    0% {
-        background-color: yellow;
-    }
-    50% {
-        background-color: green;
-    }
-    100% {
-        background-color: yellow;
-    }
+@keyframes blink-green {
+    0%, 100% { fill: green; }
+    50% { fill: darkgreen; }
 }
+
+/* General styles for blinking effects */
+.blink-yellow {
+    animation: blink-yellow 1s infinite ease-in-out;
+}
+
+.blink-red {
+    animation: blink-red 1s infinite ease-in-out;
+}
+
+.blink-green {
+    animation: blink-green 1s infinite ease-in-out;
+}
+
+/* Blinking animation for traversal nodes */
+.traversal-node {
+    background-color: rgba(255, 255, 0, 0.3); /* Semi-transparent yellow */
+    border: 3px solid rgba(255, 255, 0, 0.6); /* Semi-transparent yellow border */
+    border-radius: 50%;
+    position: absolute;
+    z-index: 1000;
+    transition: all 1s ease;
+    opacity: 0.4;  /* Additional overall transparency */
+}
+
+/* New node blinking effect */
 .new-node {
     animation: blink-animation 0.5s infinite; /* Blink animation for the new node */
-}
-
-.yellow-circle {
-    animation: blink-animation 1s infinite; /* Blink animation for the yellow circle */
 }
 
 @keyframes blink-animation {
@@ -45,7 +55,60 @@
         opacity: 1;
     }
 }
-/* General styles for rendering the tree and layout */
+
+/* Styles for pulse animation */
+@keyframes pulse-red {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 15px 15px rgba(255, 0, 0, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 0, 0, 0);
+    }
+}
+
+.node.pulse-red {
+    animation: pulse-red 1.5s infinite;
+}
+
+@keyframes pulse-black {
+    0% {
+        box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 15px 15px rgba(0, 0, 0, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+    }
+}
+
+.node.pulse-black {
+    animation: pulse-black 1.5s infinite;
+}
+
+/* Styles for recoloring with blinking effects */
+.blink-red {
+    animation: blink-red 1s infinite ease-in-out;
+}
+
+.blink-green {
+    animation: blink-green 1s infinite ease-in-out;
+}
+
+.blink-black {
+    animation: blinkBlack 1s infinite;
+}
+
+@keyframes blinkBlack {
+    0% { background-color: black; }
+    50% { background-color: grey; }
+    100% { background-color: black; }
+}
+
+/* General tree layout styles */
 body {
     font-family: Arial, sans-serif;
     margin: 20px;
@@ -182,128 +245,4 @@ button:active {
     background-color: black;
     color: white;
     border: 1px dashed white;
-}
-/* Styles related to searching nodes */
-/* Green blinking effect for the target node */
-.blink-green {
-    animation: blink-green 0.5s steps(1, start) 10; /* Longer green blink with multiple blinks */
-}
-
-/* Keyframes for green blink */
-@keyframes blink-green {
-    50% {
-        fill: green;
-    }
-    100% {
-        fill: initial; /* Reset back to the original color */
-    }
-}
-
-.new-node {
-    animation: blink-animation 0.5s infinite; /* Blink animation for the new node */
-}
-
-.yellow-circle {
-    animation: blink-animation 1s infinite; /* Blink animation for the yellow circle */
-}
-
-@keyframes blink-animation {
-    0% {
-        opacity: 1;
-    }
-    50% {
-        opacity: 0.5;
-    }
-    100% {
-        opacity: 1;
-    }
-}
-
-.blinking {
-    animation: blink-animation 1s steps(2, start) infinite;
-}
-
-@keyframes blink-animation {
-    0% { opacity: 1; }
-    50% { opacity: 0; }
-    100% { opacity: 1; }
-}
-
-.highlight {
-    border: 2px solid yellow;
-}
-
-
-.traversal-node {
-    background-color: rgba(255, 255, 0, 0.3); /* Semi-transparent yellow */
-    border: 3px solid rgba(255, 255, 0, 0.6); /* Semi-transparent yellow border */
-    border-radius: 50%;            /* To make it circular */
-    position: absolute;
-    z-index: 1000;                 /* Make sure it stays on top */
-    transition: all 1s ease;       /* Smooth transition for animations */
-    opacity: 0.4;                             /* Additional overall transparency */
-
-}
-
-.blink-yellow {
-    animation: blinkYellow 2s linear; /* Blink yellow for 2 seconds */
-  }
-  
-  @keyframes blinkYellow {
-    0% { background-color: yellow; }
-    50% { background-color: yellow; }
-    100% { background-color: yellow; }
-  }
-  
-
-  @keyframes pulse {
-    0% {
-      box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7); /* Start with a red glow */
-    }
-    70% {
-      box-shadow: 0 0 15px 15px rgba(255, 0, 0, 0); /* Expand the glow */
-    }
-    100% {
-      box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); /* End with no glow */
-    }
-  }
-  
-  .node.pulse-red {
-    animation: pulse 1.5s infinite; /* Apply the pulse effect */
-  }
-  
-  @keyframes pulse-black {
-    0% {
-      box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.7); /* Start with a black glow */
-    }
-    70% {
-      box-shadow: 0 0 15px 15px rgba(0, 0, 0, 0); /* Expand the glow */
-    }
-    100% {
-      box-shadow: 0 0 0 0 rgba(0, 0, 0, 0); /* End with no glow */
-    }
-  }
-  
-  .node.pulse-black {
-    animation: pulse-black 1.5s infinite;
-  }
-  
-  .blink-red {
-    animation: blinkRed 1s infinite;
-}
-
-@keyframes blinkRed {
-    0% { background-color: red; }
-    50% { background-color: darkred; }
-    100% { background-color: red; }
-}
-
-.blink-black {
-    animation: blinkBlack 1s infinite;
-}
-
-@keyframes blinkBlack {
-    0% { background-color: black; }
-    50% { background-color: grey; }
-    100% { background-color: black; }
 }

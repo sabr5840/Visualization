@@ -15,6 +15,35 @@ class RedBlackTree {
         this.root = null; //Initializes root as null, which means the tree is initially empty
     }
 
+    // Insert the methods recolorRed and recolorBlack inside the class
+    async recolorRed(node) {
+        console.log(`Recoloring node ${node.value} to red`);
+        node.color = 'red';
+        renderTree();
+
+        const nodeElement = document.getElementById(`node-${node.value}`);
+        if (nodeElement) {
+            nodeElement.classList.add('blink-red'); // Apply the red blink effect
+            await new Promise(resolve => setTimeout(resolve, 5000)); // Wait for the blink effect to finish
+            nodeElement.classList.remove('blink-red'); // Remove the blinking effect
+            nodeElement.style.backgroundColor = 'red'; // Ensure final color is set
+        }
+    }
+
+    async recolorBlack(node) {
+        console.log(`Recoloring node ${node.value} to black`);
+        node.color = 'black';
+        renderTree();
+
+        const nodeElement = document.getElementById(`node-${node.value}`);
+        if (nodeElement) {
+            nodeElement.style.transition = 'background-color 5s ease'; 
+            nodeElement.style.backgroundColor = 'black';
+            nodeElement.style.color = 'white';
+            await new Promise(resolve => setTimeout(resolve, 5000)); 
+        }
+    }
+
     //adjusts the tree structure to rotate down to the left, which is part of balancing the tree.
     rotateLeft(node) {
         let rightChild = node.right; //Stores the node's right child in a variable rightChild.
@@ -120,39 +149,6 @@ class RedBlackTree {
         await this.recolorRed(grandparent);
     }
 
-    // Method to recolor a node to red with animation
-    async recolorRed(node) {
-        console.log(`Recoloring node ${node.value} to red`);
-        node.color = 'red';  // Update the node's color in the tree structure
-        renderTree();  // Re-render the tree to reflect the new color
-
-        const nodeElement = document.getElementById(`node-${node.value}`);
-        if (nodeElement) {
-            nodeElement.style.transition = 'background-color 1s ease'; // Smooth transition
-            nodeElement.style.backgroundColor = 'red';
-            nodeElement.style.color = 'black';  // Change text color to black for visibility
-
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for animation to complete
-        }
-    }
-
-    // Method to recolor a node to black with animation
-    async recolorBlack(node) {
-        console.log(`Recoloring node ${node.value} to black`);
-        node.color = 'black';  // Update the node's color in the tree structure
-        renderTree();  // Re-render the tree to reflect the new color
-
-        const nodeElement = document.getElementById(`node-${node.value}`);
-        if (nodeElement) {
-            nodeElement.style.transition = 'background-color 1s ease'; // Smooth transition
-            nodeElement.style.backgroundColor = 'black';
-            nodeElement.style.color = 'white';  // Change text color to white for visibility
-
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for animation to complete
-        }
-    }
-
-
     blinkYellow(node) {
         const nodeElement = document.getElementById(`node-${node.value}`); // Get the DOM element for the node
         if (nodeElement) {
@@ -163,9 +159,6 @@ class RedBlackTree {
         }
     }
     
-
-    
-
     //Creating node
     insert(value) {
         let newNode = new Node(value); //Creates a new node with the incoming value.

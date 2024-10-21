@@ -20,17 +20,17 @@ class RedBlackTree {
         
         const nodeElement = document.getElementById(`node-${node.value}`);
         if (nodeElement) {
-            nodeElement.classList.add('blink-red');
+            nodeElement.classList.add('blink-red'); // Add the blink-red class for smooth transitions
             console.log(`Node ${node.value} should be blinking red now...`);
-            await new Promise(resolve => setTimeout(resolve, 1000));  // Blink for 1 second
-            nodeElement.classList.remove('blink-red');
-            nodeElement.style.backgroundColor = 'red';  // Change to final red color
+            await new Promise(resolve => setTimeout(resolve, 1000));  // Wait for the blinking effect (5ms)
+            nodeElement.classList.remove('blink-red');  // After blinking, the node stays black due to CSS
             console.log(`Node ${node.value} recolored to red.`);
         }
     
-        node.color = 'red';
-        renderTree();
+        node.color = 'black'; // Ensure the node's color is updated in logic
+        renderTree();  // Re-render the tree after recoloring
     }
+    
     
     async recolorBlack(node) {
         console.log(`Recoloring node ${node.value} to black`);

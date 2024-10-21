@@ -90,7 +90,9 @@
 
 
 .blink-red {
-    animation: blink-red 1s ease-in-out 10; /* Adjust duration and add iteration count */
+    animation: blink-red 1s ease-in-out 5; 
+    animation-fill-mode: forwards; 
+
 }
 
 .blink-green {

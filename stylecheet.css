@@ -27,19 +27,6 @@
     animation: blink-green 1s infinite ease-in-out;
 }
 
-/* Blinking border effect for traversal-node */
-@keyframes blink-border {
-    0% {
-        border-color: yellow;
-    }
-    50% {
-        border-color: transparent;
-    }
-    100% {
-        border-color: yellow;
-    }
-}
-
 /* Blinking animation for traversal nodes */
 .traversal-node {
     border: 5px solid yellow; 
@@ -47,7 +34,6 @@
     position: absolute;
     z-index: 1000;
     transition: all 1s ease;
-    animation: blink-border 1s infinite ease-in-out; /* Blinking border effect */
 }
 
 /* New node blinking effect */
@@ -240,6 +226,7 @@ button:active {
     display: flex;
     justify-content: center;
     align-items: center;
+
 }
 
 @media (max-width: 768px) {

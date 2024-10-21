@@ -678,27 +678,32 @@ function renderTree(foundNode = null) {
     const links = [];
     
     // Helper function to traverse the tree and collect nodes and links.
-    function traverse(node, x, y, level, xOffset) {
-        if (node !== null) {
-            // Add the current node to the nodes array.
-            nodes.push({ node, x, y });
-            
-            // If the left child exists, add a link and recursively traverse it.
-            if (node.left !== null) {
-                links.push({ source: { x, y }, target: { x: x - xOffset, y: y + 50 } });
-                traverse(node.left, x - xOffset, y + 50, level + 1, xOffset / 1.5);
-            }
-            
-            // If the right child exists, add a link and recursively traverse it.
-            if (node.right !== null) {
-                links.push({ source: { x, y }, target: { x: x + xOffset, y: y + 50 } });
-                traverse(node.right, x + xOffset, y + 50, level + 1, xOffset / 1.5);
-            }
+function traverse(node, x, y, level, xOffset) {
+    if (node !== null) {
+        nodes.push({ node, x, y });
+        
+        // Calculate new y based on the depth (level) of the node
+        const ySpacing = 80; // Adjust this value for more spacing between levels
+        const newY = y + ySpacing;
+        
+        if (node.left !== null) {
+            const newXOffset = xOffset / 1.5; // Adjust this as needed
+            links.push({ source: { x, y }, target: { x: x - xOffset, y: newY } });
+            traverse(node.left, x - xOffset, newY, level + 1, newXOffset);
+        }
+        
+        if (node.right !== null) {
+            const newXOffset = xOffset / 1.5; // Adjust this as needed
+            links.push({ source: { x, y }, target: { x: x + xOffset, y: newY } });
+            traverse(node.right, x + xOffset, newY, level + 1, newXOffset);
         }
     }
+}
+
 
     // Start the traversal from the root node, centered horizontally, and at a starting vertical position.
-    traverse(tree.root, width / 2, 30, 1, width / 4);
+    traverse(tree.root, width / 2, 30, 1, width / 12);  // Width divided by 12 for even tighter spacing
+
 
     // Determine the bounding box of the tree for proper SVG scaling.
     const minX = Math.min(...nodes.map(d => d.x));

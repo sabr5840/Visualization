@@ -31,7 +31,6 @@ class RedBlackTree {
         renderTree();  // Re-render the tree after recoloring
     }
     
-    
     async recolorBlack(node) {
         console.log(`Recoloring node ${node.value} to black`);
         
@@ -361,7 +360,6 @@ class RedBlackTree {
         if (x !== null) x.color = 'black';  // Ensure 'x' is black.
     }
     
-
     // Blink effect for a given node
     async blinkNode(node, color) {
     const nodeElement = document.getElementById(`node-${node.value}`);
@@ -423,10 +421,10 @@ function insertNode() {
     // Step 1: Start the traversal animation
     const traversalCircle = document.createElement('div');
     traversalCircle.className = 'node traversal-node';  // A new class for the yellow traversal circle
-    traversalCircle.style.position = 'absolute';
-    traversalCircle.style.backgroundColor = 'yellow';
+    traversalCircle.style.marginLeft = '8px';
+    traversalCircle.style.marginTop = '8px';
     traversalCircle.style.borderRadius = '50%';
-    traversalCircle.style.transition = 'all 1s ease';  // Smooth movement
+    traversalCircle.style.transition = 'all 3s ease';  // Smooth movement
     traversalCircle.style.width = '20px';
     traversalCircle.style.height = '20px';
 

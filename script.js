@@ -54,44 +54,104 @@ class RedBlackTree {
     }
 
     //handles  various cases that may occur after inserting a new node to ensure that the tree remains a Red-Black Tree with all its properties intact.
-    fixInsertion(node) {
-        while (node !== this.root && node.parent.color === 'red') { 
-            if (node.parent === node.parent.parent.left) { 
-                let uncle = node.parent.parent.right; 
-                if (uncle !== null && uncle.color === 'red') { 
-                    node.parent.color = 'black'; 
-                    uncle.color = 'black';
-                    node.parent.parent.color = 'red'; 
-                    node = node.parent.parent; 
-                } else { // hvis uncle is not red...
-                    if (node === node.parent.right) { 
-                        node = node.parent;
-                        this.rotateLeft(node);
-                    }
-                    node.parent.color = 'black';
-                    node.parent.parent.color = 'red';
-                    this.rotateRight(node.parent.parent); 
+    async fixInsertion(node) {
+    while (node !== this.root && node.parent.color === 'red') {
+        if (node.parent === node.parent.parent.left) {
+            let uncle = node.parent.parent.right;
+            if (uncle !== null && uncle.color === 'red') {
+                console.log('Uncle is red, performing recoloring...');
+                await this.animateRecoloring(node.parent, uncle, node.parent.parent);
+                node.parent.color = 'black';
+                uncle.color = 'black';
+                node.parent.parent.color = 'red';
+                node = node.parent.parent;
+            } else {
+                if (node === node.parent.right) {
+                    node = node.parent;
+                    this.rotateLeft(node);
                 }
-            } else { //If the node's parent is the right child.
-                let uncle = node.parent.parent.left; 
-                if (uncle !== null && uncle.color === 'red') {
-                    node.parent.color = 'black';
-                    uncle.color = 'black';
-                    node.parent.parent.color = 'red';
-                    node = node.parent.parent;
-                } else { //if the uncle is not red
-                    if (node === node.parent.left) { 
-                        node = node.parent;
-                        this.rotateRight(node);
-                    }
-                    node.parent.color = 'black';
-                    node.parent.parent.color = 'red';
-                    this.rotateLeft(node.parent.parent); 
+                node.parent.color = 'black';
+                node.parent.parent.color = 'red';
+                this.rotateRight(node.parent.parent);
+            }
+        } else {
+            let uncle = node.parent.parent.left;
+            if (uncle !== null && uncle.color === 'red') {
+                console.log('Uncle is red, performing recoloring...');
+                await this.animateRecoloring(node.parent, uncle, node.parent.parent);
+                node.parent.color = 'black';
+                uncle.color = 'black';
+                node.parent.parent.color = 'red';
+                node = node.parent.parent;
+            } else {
+                if (node === node.parent.left) {
+                    node = node.parent;
+                    this.rotateRight(node);
                 }
+                node.parent.color = 'black';
+                node.parent.parent.color = 'red';
+                this.rotateLeft(node.parent.parent);
             }
         }
-        this.root.color = 'black';
     }
+    console.log('Ensuring root is black');
+    this.root.color = 'black';
+    await this.recolorBlack(this.root);  // Also update the DOM element for the root
+
+    }
+
+    // Async method to animate recoloring of parent, uncle, and grandparent
+    async animateRecoloring(parent, uncle, grandparent) {
+        // Start by blinking parent and uncle red
+        await this.recolorRed(parent);
+        await this.recolorRed(uncle);
+
+        // Wait for 1 second before proceeding
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // Recolor parent and uncle to black
+        await this.recolorBlack(parent);
+        await this.recolorBlack(uncle);
+
+        // Wait for 1 second before recoloring grandparent
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // Recolor grandparent red
+        await this.recolorRed(grandparent);
+    }
+
+    // Method to recolor a node to red with animation
+    async recolorRed(node) {
+        console.log(`Recoloring node ${node.value} to red`);
+        node.color = 'red';  // Update the node's color in the tree structure
+        renderTree();  // Re-render the tree to reflect the new color
+
+        const nodeElement = document.getElementById(`node-${node.value}`);
+        if (nodeElement) {
+            nodeElement.style.transition = 'background-color 1s ease'; // Smooth transition
+            nodeElement.style.backgroundColor = 'red';
+            nodeElement.style.color = 'black';  // Change text color to black for visibility
+
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for animation to complete
+        }
+    }
+
+    // Method to recolor a node to black with animation
+    async recolorBlack(node) {
+        console.log(`Recoloring node ${node.value} to black`);
+        node.color = 'black';  // Update the node's color in the tree structure
+        renderTree();  // Re-render the tree to reflect the new color
+
+        const nodeElement = document.getElementById(`node-${node.value}`);
+        if (nodeElement) {
+            nodeElement.style.transition = 'background-color 1s ease'; // Smooth transition
+            nodeElement.style.backgroundColor = 'black';
+            nodeElement.style.color = 'white';  // Change text color to white for visibility
+
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for animation to complete
+        }
+    }
+
 
     blinkYellow(node) {
         const nodeElement = document.getElementById(`node-${node.value}`); // Get the DOM element for the node
@@ -102,6 +162,8 @@ class RedBlackTree {
             }, 2000); // Blink for 2 seconds
         }
     }
+    
+
     
 
     //Creating node

@@ -288,3 +288,22 @@ button:active {
     animation: pulse-black 1.5s infinite;
   }
   
+  .blink-red {
+    animation: blinkRed 1s infinite;
+}
+
+@keyframes blinkRed {
+    0% { background-color: red; }
+    50% { background-color: darkred; }
+    100% { background-color: red; }
+}
+
+.blink-black {
+    animation: blinkBlack 1s infinite;
+}
+
+@keyframes blinkBlack {
+    0% { background-color: black; }
+    50% { background-color: grey; }
+    100% { background-color: black; }
+}

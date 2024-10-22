@@ -1,3 +1,4 @@
+
 //template for creating objects with specific properties and methods.
 class Node {
     constructor(value, color = 'red') { //Defines constructor function, will be called when a new instance is created. (the default color 'red'.)
@@ -8,8 +9,6 @@ class Node {
         this.parent = null;
     }
 }
-
-
 
 async function recolorBlack(node) {
     console.log(`Recoloring node ${node.value} to black`);
@@ -25,7 +24,6 @@ async function recolorBlack(node) {
     }
     node.color = 'black';
 }
-
 
 //new class which represents the entire tree structure.
 class RedBlackTree { 
@@ -72,8 +70,6 @@ class RedBlackTree {
         renderTree();
     }
 
-    
-    
     //adjusts the tree structure to rotate down to the left, which is part of balancing the tree.
     rotateLeft(node) {
         let rightChild = node.right; //Stores the node's right child in a variable rightChild.
@@ -812,3 +808,11 @@ document.getElementById('nodeValue').addEventListener('keypress', function (e) {
         insertNode();
     }
 });
+
+
+
+
+
+
+
+

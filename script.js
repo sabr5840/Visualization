@@ -19,45 +19,40 @@ class RedBlackTree {
 
     async recolorBlack(node) {
         console.log(`Recoloring node ${node.value} to black`);
-
+    
         // Skip recoloring if already black
         if (node.color === 'black') {
             console.log(`Node ${node.value} is already black. Skipping...`);
             return;
         }
-
+    
         const nodeElement = document.getElementById(`node-${node.value}`);
         if (nodeElement) {
-            nodeElement.classList.add('blink-black');
-            console.log(`Node ${node.value} should be blinking black now...`);
-            await new Promise(resolve => setTimeout(resolve, 1000));  // Blink for 1 second
-            nodeElement.classList.remove('blink-black');
-            nodeElement.style.backgroundColor = 'black';  // Ensure final color is black
+            node.color = 'black'; 
+            await this.blinkNode(node, 'black'); // Blink before setting the color
+            nodeElement.style.backgroundColor = 'black'; // Set final color after blinking
             console.log(`Node ${node.value} recolored to black.`);
         }
-
+    
         node.color = 'black';
         renderTree();
     }
-
+    
     async recolorRed(node) {
         console.log(`Recoloring node ${node.value} to red`);
-
+    
         const nodeElement = document.getElementById(`node-${node.value}`);
         if (nodeElement) {
-            nodeElement.classList.add('blink-red'); 
-            console.log(`Node ${node.value} should be blinking red now...`);
-            await new Promise(resolve => setTimeout(resolve, 1000));  
-            nodeElement.classList.remove('blink-red'); 
-            nodeElement.style.backgroundColor = 'red';  // Ensure final color is red
+            node.color = 'red'; 
+            await this.blinkNode(node, 'red'); // Blink before setting the color
+            nodeElement.style.backgroundColor = 'red';  // Set final color after blinking
             console.log(`Node ${node.value} recolored to red.`);
         }
-
-        node.color = 'red'; // Ensure the node's color is updated in logic
-        renderTree();  // Re-render the tree after recoloring
+    
+        node.color = 'red';
+        renderTree();
     }
-
-
+    
 
     //adjusts the tree structure to rotate down to the left, which is part of balancing the tree.
     rotateLeft(node) {
@@ -354,48 +349,68 @@ class RedBlackTree {
         if (x !== null) x.color = 'black';  // Ensure 'x' is black.
     }
     
-    // Blink effect for a given node
-    async blinkNode(node, color) {
-    const nodeElement = document.getElementById(`node-${node.value}`);
+    async blinkNode(node, finalColor, duration = 2000) {
+        const nodeElement = document.getElementById(`node-${node.value}`);
         if (nodeElement) {
-            const blinkClass = color === 'black' ? 'blink-black' : 'blink-red'; // Adjust blink class based on color
+            const currentColor = node.color;
+            const blinkClass = (finalColor === 'black' && currentColor !== 'black') ? 'blink-black' : 'blink-red';
+            console.log(`Applying ${blinkClass} to node ${node.value}`);    
+    
+            // Add blink class
             nodeElement.classList.add(blinkClass);
-            console.log(`Node ${node.value} should be blinking ${color} now...`);
-            await new Promise(resolve => setTimeout(resolve, 1000));  // Wait for blink effect to finish
+    
+            // Wait for the blink animation to finish
+            await new Promise(resolve => setTimeout(resolve, duration));
+    
+            console.log(`Removing ${blinkClass} from node ${node.value}`);
+            // Remove blink class after the duration
             nodeElement.classList.remove(blinkClass);
-            console.log(`Node ${node.value} stopped blinking.`);
-
-            // Ensure final color is set after blinking
-            nodeElement.style.backgroundColor = color;
+    
+            // Apply the final color
+            nodeElement.style.backgroundColor = finalColor;
+            console.log(`Node ${node.value} has been recolored to ${finalColor}.`);
+        } else {
+            console.error(`Could not find DOM element for node ${node.value}`);
         }
     }
-
-    // Async method to animate recoloring of parent, uncle, and grandparent
+    
+    
+    
     async animateRecoloring(parent, uncle, grandparent) {
         console.log(`Starting recoloring for parent node ${parent.value}...`);
-        
-        // Recolor parent to black (if not already black)
+    
+        // Blink and recolor parent
         if (parent.color !== 'black') {
-            await this.recolorBlack(parent);
-            await this.blinkNode(parent, 'black');
+            console.log(`Blinking and recoloring parent: ${parent.value}`);
+            await this.blinkNode(parent, 'black');  // Blink before recoloring
+            await this.recolorBlack(parent);        // Then recolor
         }
-
-        console.log(`Starting recoloring for uncle node ${uncle.value}...`);
-        
-        // Recolor uncle to black (if not already black)
-        if (uncle.color !== 'black') {
-            await this.recolorBlack(uncle);
-            await this.blinkNode(uncle, 'black');
+    
+        console.log(`Starting recoloring for uncle node ${uncle ? uncle.value : 'null'}`);
+    
+        // Blink and recolor uncle, if it exists
+        if (uncle !== null && uncle.color !== 'black') {
+            console.log(`Blinking and recoloring uncle: ${uncle.value}`);
+            await this.blinkNode(uncle, 'black');  // Blink before recoloring
+            await this.recolorBlack(uncle);        // Then recolor
         }
-
+    
         console.log(`Starting recoloring for grandparent node ${grandparent.value}...`);
-        
-        // Recolor grandparent to red (if not already red)
+    
+        // Blink and recolor grandparent
         if (grandparent.color !== 'red') {
-            await this.recolorRed(grandparent);
-            await this.blinkNode(grandparent, 'red');
+            console.log(`Blinking and recoloring grandparent: ${grandparent.value}`);
+            await this.blinkNode(grandparent, 'red');  // Blink before recoloring
+            await this.recolorRed(grandparent);        // Then recolor
         }
+    
+        renderTree();  // Re-render the entire tree after blinking and recoloring are complete
     }
+    
+    
+    
+    
+    
 
 
 
@@ -493,14 +508,12 @@ function insertNode() {
 
 // This function renders a node of the Red-Black Tree and its connections in the DOM.
 function renderNode(node, container, parentNode, isLeft) {
-    console.log("Rendering node: ", node.value); // Add this to check node rendering
-    
     const element = document.createElement('div');
     element.className = 'node';
-    element.id = `node-${node.value}`;
+    element.id = `node-${node.value}`;  // Ensure node ID is correctly set
     element.innerText = node.value;
     element.style.backgroundColor = node.color === 'red' ? 'red' : 'black';
-    element.style.color = node.color === 'red' ? 'black' : 'white';
+    container.appendChild(element);
     
     container.appendChild(element);
     
@@ -670,23 +683,6 @@ function moveHighlightTo(circle, startNodeElement, endNodeElement, duration = 10
 function clearBlink(nodeElement, originalColor) {
     nodeElement.classList.remove('blink-red', 'blink-green');
     nodeElement.style.backgroundColor = originalColor; // Restore original background color
-}
-
-// This function visually highlights a node by making it blink for a short duration.
-function blinkNode(node) {
-    // Select all 'circle' elements within the '#tree' container and filter to find the circles representing the given node.
-    const circles = d3.select('#tree').selectAll('circle') 
-        .filter(d => d.node === node);
-
-    // Add the blink class to trigger animation
-    circles.classed('blink', true);
-
-    // Remove the blink class after 5 seconds
-    setTimeout(() => {
-        circles.classed('blink', false);
-        // Set fill color back to node's original color if needed
-        circles.attr('fill', d => d.node.color);
-    }, 5000); // 5 seconds
 }
 
 function renderPredefinedTree() {

@@ -13,18 +13,6 @@
     100% { fill: black; }       
 }
 
-@keyframes blink-black {
-    0% { background-color: rgb(0, 208, 255); }
-    50% { background-color: rgb(0, 255, 247); }
-    100% { background-color: black; }
-}
-
-.blink-black {
-    animation: blink-black 1s ease-in-out 5; 
-    animation-fill-mode: forwards;  
-}
-
-
 @keyframes blink-green {
     0%, 100% { fill: green; }
     50% { fill: darkgreen; }
@@ -256,3 +244,4 @@ button:active {
     color: white;
     border: 1px dashed white;
 }
+

@@ -41,9 +41,9 @@
     transition: all 1s ease;
 }
 
-/* New node blinking effect */
 .new-node {
-    animation: blink-animation 0.5s infinite; /* Blink animation for the new node */
+    animation: pulse 1s infinite, blink-animation 200ms infinite;
+
 }
 
 @keyframes blink-animation {
@@ -55,6 +55,19 @@
     }
     100% {
         opacity: 1;
+    }
+}
+
+/* Define the pulse effect */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
     }
 }
 

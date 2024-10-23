@@ -689,6 +689,39 @@ function blinkNode(node) {
     }, 5000); // 5 seconds
 }
 
+function renderPredefinedTree() {
+    // Clear the existing tree
+    const treeContainer = document.getElementById('tree');
+    treeContainer.innerHTML = ''; // Clear any previous tree
+
+    // Create a new red-black tree
+    const predefinedTree = new RedBlackTree();
+
+    // Manually insert the nodes to create the desired tree structure
+    predefinedTree.root = new Node(10, 'black');
+    
+    // Left subtree
+    predefinedTree.root.left = new Node(5, 'black');
+    predefinedTree.root.left.left = new Node(3, 'red'); // Left child of node 5
+    predefinedTree.root.left.right = new Node(7, 'red'); // Right child of node 5
+
+    // Right subtree
+    predefinedTree.root.right = new Node(20, 'black');
+    predefinedTree.root.right.right = new Node(30, 'red'); // Right child of node 20
+
+    // Link parent-child relationships
+    predefinedTree.root.left.parent = predefinedTree.root;
+    predefinedTree.root.left.left.parent = predefinedTree.root.left;
+    predefinedTree.root.left.right.parent = predefinedTree.root.left;
+    predefinedTree.root.right.parent = predefinedTree.root;
+    predefinedTree.root.right.right.parent = predefinedTree.root.right;
+
+    // Now render this tree visually
+    tree.root = predefinedTree.root; // Set the tree root to this predefined tree root
+    renderTree(); // Render the tree
+}
+
+
 // This function visualizes the Red-Black Tree and optionally highlights a specific node.
 function renderTree(foundNode = null) {
     // Get the container element where the tree will be rendered and clear its contents.

@@ -349,7 +349,7 @@ class RedBlackTree {
         if (x !== null) x.color = 'black';  // Ensure 'x' is black.
     }
     
-    async blinkNode(node, finalColor, duration = 2000) {
+    async blinkNode(node, finalColor, duration = 1000) {
         const nodeElement = document.getElementById(`node-${node.value}`);
         if (nodeElement) {
             const currentColor = node.color;

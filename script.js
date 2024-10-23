@@ -28,6 +28,7 @@ class RedBlackTree {
     
         const nodeElement = document.getElementById(`node-${node.value}`);
         if (nodeElement) {
+            node.color = 'black'; 
             await this.blinkNode(node, 'black'); // Blink before setting the color
             nodeElement.style.backgroundColor = 'black'; // Set final color after blinking
             console.log(`Node ${node.value} recolored to black.`);
@@ -42,6 +43,7 @@ class RedBlackTree {
     
         const nodeElement = document.getElementById(`node-${node.value}`);
         if (nodeElement) {
+            node.color = 'red'; 
             await this.blinkNode(node, 'red'); // Blink before setting the color
             nodeElement.style.backgroundColor = 'red';  // Set final color after blinking
             console.log(`Node ${node.value} recolored to red.`);
@@ -51,6 +53,8 @@ class RedBlackTree {
         renderTree();
     }
     
+
+
 
     //adjusts the tree structure to rotate down to the left, which is part of balancing the tree.
     rotateLeft(node) {
@@ -347,75 +351,63 @@ class RedBlackTree {
         if (x !== null) x.color = 'black';  // Ensure 'x' is black.
     }
     
-    // Blink effect for a given node
-    async blinkNode(node, finalColor, duration = 2000) {  // Increase duration to 2 seconds
+    async blinkNode(node, finalColor, duration = 1000) {
         const nodeElement = document.getElementById(`node-${node.value}`);
-        
         if (nodeElement) {
-            const blinkClass = finalColor === 'black' ? 'blink-black' : 'blink-red';
-            nodeElement.classList.add(blinkClass);
-            console.log(`Node ${node.value} is blinking ${finalColor}...`);
+            const currentColor = node.color;
+            const blinkClass = (finalColor === 'black' && currentColor !== 'black') ? 'blink-black' : 'blink-red';
+            console.log(`Applying ${blinkClass} to node ${node.value}`);    
     
-            await new Promise(resolve => setTimeout(resolve, duration));  // Wait longer for blink effect
-            
+            // Add blink class
+            nodeElement.classList.add(blinkClass);
+    
+            // Wait for the blink animation to finish
+            await new Promise(resolve => setTimeout(resolve, duration));
+    
+            console.log(`Removing ${blinkClass} from node ${node.value}`);
+            // Remove blink class after the duration
             nodeElement.classList.remove(blinkClass);
+    
+            // Apply the final color
             nodeElement.style.backgroundColor = finalColor;
             console.log(`Node ${node.value} has been recolored to ${finalColor}.`);
         } else {
             console.error(`Could not find DOM element for node ${node.value}`);
         }
     }
-    
-
-    async blinkNode(node, finalColor, duration = 2000) {  // Increase duration for testing
-        const nodeElement = document.getElementById(`node-${node.value}`);
-        
-        if (nodeElement) {
-            const blinkClass = finalColor === 'black' ? 'blink-black' : 'blink-red';
-            nodeElement.classList.add(blinkClass);
-            console.log(`Node ${node.value} is blinking ${finalColor}...`);
-    
-            await new Promise(resolve => setTimeout(resolve, duration));  // Longer blink time
-            
-            nodeElement.classList.remove(blinkClass);
-            nodeElement.style.backgroundColor = finalColor;
-            console.log(`Node ${node.value} has been recolored to ${finalColor}.`);
-        } else {
-            console.error(`Could not find DOM element for node ${node.value}`);
-        }
-    }
-    
 
     async animateRecoloring(parent, uncle, grandparent) {
         console.log(`Starting recoloring for parent node ${parent.value}...`);
-        
+    
         // Blink and recolor parent
         if (parent.color !== 'black') {
-            await this.blinkNode(parent, 'black');
-            await this.recolorBlack(parent);  // Ensure the blink finishes before calling recolorBlack
+            console.log(`Blinking and recoloring parent: ${parent.value}`);
+            await this.blinkNode(parent, 'black');  // Blink before recoloring
+            await this.recolorBlack(parent);        // Then recolor
         }
     
         console.log(`Starting recoloring for uncle node ${uncle ? uncle.value : 'null'}`);
-        
+    
         // Blink and recolor uncle, if it exists
         if (uncle !== null && uncle.color !== 'black') {
-            await this.blinkNode(uncle, 'black');
-            await this.recolorBlack(uncle);  // Ensure the blink finishes before calling recolorBlack
+            console.log(`Blinking and recoloring uncle: ${uncle.value}`);
+            await this.blinkNode(uncle, 'black');  // Blink before recoloring
+            await this.recolorBlack(uncle);        // Then recolor
         }
     
         console.log(`Starting recoloring for grandparent node ${grandparent.value}...`);
-        
+    
         // Blink and recolor grandparent
         if (grandparent.color !== 'red') {
-            await this.blinkNode(grandparent, 'red');
-            await this.recolorRed(grandparent);  // Ensure the blink finishes before calling recolorRed
+            console.log(`Blinking and recoloring grandparent: ${grandparent.value}`);
+            await this.blinkNode(grandparent, 'red');  // Blink before recoloring
+            await this.recolorRed(grandparent);        // Then recolor
         }
     
-        // Delay re-rendering of the entire tree until blinking and recoloring are done
-        renderTree();
+        renderTree();  // Re-render the entire tree after blinking and recoloring are complete
     }
-    
-    
+
+
 
 
 
@@ -440,18 +432,16 @@ function insertNode() {
 
     // Start the animation by adding a red node on the top-left side
     let newNodeElement = document.createElement('div');
-    newNodeElement.className = 'node new-node';  // Apply both pulse and blink effects with the new-node class
+    newNodeElement.className = 'node new-node';  // Apply blinking effect with the new-node class
     newNodeElement.style.position = 'absolute';
-    newNodeElement.style.left = '10px';  // Positioning at the top-left corner
-    newNodeElement.style.top = '10px';
+    newNodeElement.style.left = '5px';  // Positioning at the top-left corner
+    newNodeElement.style.top = '5px';
     newNodeElement.style.backgroundColor = 'red';
     newNodeElement.style.color = 'white';  // Set text color to white
     newNodeElement.style.border = '2px solid black';  // Add a black border around the node
     newNodeElement.style.borderRadius = '50%';  // Make the node circular
-    newNodeElement.style.padding = '5px';  // Consistent padding across nodes
-    newNodeElement.style.margin = '5px';  // Consistent margin across nodes
-    newNodeElement.style.transition = 'all 2s ease, background-color 0.5s, color 0.5s';  // Combine transitions
-    newNodeElement.innerText = value;  // Set the inner text to the node's value
+    newNodeElement.style.transition = 'all 2s ease';  // Smooth transition
+    newNodeElement.innerText = value;
 
     const container = document.getElementById('tree');
     container.appendChild(newNodeElement);
@@ -475,6 +465,7 @@ function insertNode() {
     traversalCircle.style.transition = 'all 3s ease';  // Smooth movement
     traversalCircle.style.width = '20px';
     traversalCircle.style.height = '20px';
+
 
     // Start traversal from the root
     let current = tree.root;
@@ -512,7 +503,6 @@ function insertNode() {
     traverseTree();
 }
 
-
 // This function renders a node of the Red-Black Tree and its connections in the DOM.
 function renderNode(node, container, parentNode, isLeft) {
     const element = document.createElement('div');
@@ -521,15 +511,15 @@ function renderNode(node, container, parentNode, isLeft) {
     element.innerText = node.value;
     element.style.backgroundColor = node.color === 'red' ? 'red' : 'black';
     container.appendChild(element);
-    
+
     container.appendChild(element);
-    
+
     if (parentNode) {
         const line = document.createElement('div');
         line.className = 'line';
         const parentRect = parentNode.getBoundingClientRect();
         const containerRect = container.getBoundingClientRect();
-        
+
         console.log('Parent Rect:', parentRect);
 
         // Initial positioning for the new node
@@ -557,6 +547,7 @@ function renderNode(node, container, parentNode, isLeft) {
         }, 500);
     }
 }
+
 
 
 // This function deletes a node with the specified value from the Red-Black Tree.
@@ -887,6 +878,13 @@ document.getElementById('nodeValue').addEventListener('keypress', function (e) {
         insertNode();
     }
 });
+
+
+
+
+
+
+
 
 
 

@@ -13,10 +13,17 @@
     100% { fill: black; }       
 }
 
-.blink-red {
-    animation: blink-red 100ms ease-in-out 5; 
-    animation-fill-mode: forwards; 
+@keyframes blink-black {
+    0% { background-color: rgb(0, 208, 255); }
+    50% { background-color: rgb(0, 255, 247); }
+    100% { background-color: black; }
 }
+
+.blink-black {
+    animation: blink-black 1s ease-in-out 5; 
+    animation-fill-mode: forwards;  
+}
+
 
 @keyframes blink-green {
     0%, 100% { fill: green; }
@@ -41,9 +48,9 @@
     transition: all 1s ease;
 }
 
+/* New node blinking effect */
 .new-node {
-    animation: pulse 1s infinite, blink-animation 200ms infinite;
-
+    animation: blink-animation 0.5s infinite; /* Blink animation for the new node */
 }
 
 @keyframes blink-animation {
@@ -58,20 +65,45 @@
     }
 }
 
-/* Define the pulse effect */
-@keyframes pulse {
+/* Styles for pulse animation */
+@keyframes pulse-red {
     0% {
-        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7);
     }
-    50% {
-        transform: scale(1.1);
+    70% {
+        box-shadow: 0 0 15px 15px rgba(255, 0, 0, 0);
     }
     100% {
-        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 0, 0, 0);
     }
 }
 
+.node.pulse-red {
+    animation: pulse-red 1.5s infinite;
+}
 
+@keyframes pulse-black {
+    0% {
+        box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 15px 15px rgba(0, 0, 0, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+    }
+}
+
+.node.pulse-black {
+    animation: pulse-black 1.5s infinite;
+}
+
+
+.blink-red {
+    animation: blink-red 1s ease-in-out 5; 
+    animation-fill-mode: forwards; 
+
+}
 
 .blink-green {
     animation: blink-green 1s infinite ease-in-out;

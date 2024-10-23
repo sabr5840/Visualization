@@ -691,7 +691,6 @@ function blinkNode(node) {
 
 // This function visualizes the Red-Black Tree and optionally highlights a specific node.
 function renderTree(foundNode = null) {
-
     // Get the container element where the tree will be rendered and clear its contents.
     const treeContainer = document.getElementById('tree');
     treeContainer.innerHTML = '';
@@ -705,48 +704,50 @@ function renderTree(foundNode = null) {
     const links = [];
     
     // Helper function to traverse the tree and collect nodes and links.
-function traverse(node, x, y, level, xOffset) {
-    if (node !== null) {
-        nodes.push({ node, x, y });
-        
-        // Calculate new y based on the depth (level) of the node
-        const ySpacing = 80; // Adjust this value for more spacing between levels
-        const newY = y + ySpacing;
-        
-        if (node.left !== null) {
-            const newXOffset = xOffset / 1.5; // Adjust this as needed
-            links.push({ source: { x, y }, target: { x: x - xOffset, y: newY } });
-            traverse(node.left, x - xOffset, newY, level + 1, newXOffset);
-        }
-        
-        if (node.right !== null) {
-            const newXOffset = xOffset / 1.5; // Adjust this as needed
-            links.push({ source: { x, y }, target: { x: x + xOffset, y: newY } });
-            traverse(node.right, x + xOffset, newY, level + 1, newXOffset);
+    function traverse(node, x, y, level, xOffset) {
+        if (node !== null) {
+            nodes.push({ node, x, y });
+            
+            // Calculate new y based on the depth (level) of the node
+            const ySpacing = 80; // Adjust this value for more spacing between levels
+            const newY = y + ySpacing;
+            
+            if (node.left !== null) {
+                const newXOffset = xOffset / 1.5; // Adjust this as needed
+                links.push({ source: { x, y }, target: { x: x - xOffset, y: newY } });
+                traverse(node.left, x - xOffset, newY, level + 1, newXOffset);
+            }
+            
+            if (node.right !== null) {
+                const newXOffset = xOffset / 1.5; // Adjust this as needed
+                links.push({ source: { x, y }, target: { x: x + xOffset, y: newY } });
+                traverse(node.right, x + xOffset, newY, level + 1, newXOffset);
+            }
         }
     }
-}
-
 
     // Start the traversal from the root node, centered horizontally, and at a starting vertical position.
     traverse(tree.root, width / 2, 30, 1, width / 12);  // Width divided by 12 for even tighter spacing
 
-
-    // Determine the bounding box of the tree for proper SVG scaling.
-    const minX = Math.min(...nodes.map(d => d.x));
-    const maxX = Math.max(...nodes.map(d => d.x));
-    const minY = Math.min(...nodes.map(d => d.y));
-    const maxY = Math.max(...nodes.map(d => d.y));
-
-    const treeWidth = maxX - minX;
-    const treeHeight = maxY - minY;
-
     // Create and configure the SVG container for rendering the tree.
     const svgContainer = d3.select('#tree').append('svg')
-    .attr('width', width)
-    .attr('height', height)
-    .attr('viewBox', `0 0 ${width} ${height}`);
+        .attr('width', width)
+        .attr('height', height)
+        .attr('viewBox', `0 0 ${width} ${height}`);
 
+    // Add arrow markers to the SVG for use in the links (edges).
+    svgContainer.append('defs')
+        .append('marker')
+        .attr('id', 'arrow')
+        .attr('viewBox', '0 0 10 10')
+        .attr('refX', 10)  
+        .attr('refY', 5)
+        .attr('markerWidth', 6)
+        .attr('markerHeight', 6)
+        .attr('orient', 'auto-start-reverse')
+        .append('path')
+        .attr('d', 'M 0 0 L 10 5 L 0 10 z')  // Define the arrow shape
+        .attr('fill', 'black');
 
     // Render the links (edges) between nodes.
     const linkSelection = svgContainer.selectAll('line')
@@ -756,13 +757,43 @@ function traverse(node, x, y, level, xOffset) {
         .append('line')
         .attr('x1', d => d.source.x)
         .attr('y1', d => d.source.y)
-        .attr('x2', d => d.source.x)
-        .attr('y2', d => d.source.y)
+        .attr('x2', d => {
+            // Shorten the x2 by 15 (node radius) to prevent arrow from overlapping node
+            const dx = d.target.x - d.source.x;
+            const dy = d.target.y - d.source.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            const scale = (distance - 15) / distance;  // Shorten by node radius
+            return d.source.x + dx * scale;
+        })
+        .attr('y2', d => {
+            // Shorten the y2 by 15 (node radius) to prevent arrow from overlapping node
+            const dx = d.target.x - d.source.x;
+            const dy = d.target.y - d.source.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            const scale = (distance - 15) / distance;  // Shorten by node radius
+            return d.source.y + dy * scale;
+        })
         .attr('stroke', 'black')
+        .attr('stroke-width', 2)  // Ensure the stroke is wide enough
+        .attr('marker-end', 'url(#arrow)')  // Add the arrow marker to the end of the line
         .transition()
         .duration(500)
-        .attr('x2', d => d.target.x)
-        .attr('y2', d => d.target.y);
+        .attr('x2', d => {
+            // Shorten the x2 by 15 (node radius) to prevent arrow from overlapping node
+            const dx = d.target.x - d.source.x;
+            const dy = d.target.y - d.source.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            const scale = (distance - 15) / distance;  // Shorten by node radius
+            return d.source.x + dx * scale;
+        })
+        .attr('y2', d => {
+            // Shorten the y2 by 15 (node radius) to prevent arrow from overlapping node
+            const dx = d.target.x - d.source.x;
+            const dy = d.target.y - d.source.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            const scale = (distance - 15) / distance;  // Shorten by node radius
+            return d.source.y + dy * scale;
+        });
 
     linkSelection.exit()
         .transition()
@@ -788,7 +819,6 @@ function traverse(node, x, y, level, xOffset) {
         .duration(500)
         .attr('cx', d => d.x)
         .attr('cy', d => d.y);
-    
 
     nodeSelection.exit()
         .transition()
@@ -796,6 +826,7 @@ function traverse(node, x, y, level, xOffset) {
         .attr('r', 0)
         .remove();
 
+    // Render the node values (text labels) inside the nodes.
     svgContainer.selectAll('text')
         .data(nodes)
         .enter()
@@ -811,6 +842,9 @@ function traverse(node, x, y, level, xOffset) {
         blinkNode(foundNode);
     }
 }
+
+
+
 
 document.getElementById('nodeValue').addEventListener('keypress', function (e) {
     if (e.key === 'Enter') {

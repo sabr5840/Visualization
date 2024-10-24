@@ -1,4 +1,4 @@
-
+                                                                                                                                                     
 //template for creating objects with specific properties and methods.
 class Node {
     constructor(value, color = 'red') { //Defines constructor function, will be called when a new instance is created. (the default color 'red'.)
@@ -56,27 +56,30 @@ class RedBlackTree {
 
 
 
-    //adjusts the tree structure to rotate down to the left, which is part of balancing the tree.
     rotateLeft(node) {
-        let rightChild = node.right; //Stores the node's right child in a variable rightChild.
-        node.right = rightChild.left; //Moves right Child's left child to be node's right child.
-        if (rightChild.left !== null) { //Updates the parent reference, if right Child's left child is not null...
+        console.log(`Starting left rotation on node ${node.value}`);
+        let rightChild = node.right;
+        node.right = rightChild.left;
+        if (rightChild.left !== null) {
             rightChild.left.parent = node;
         }
-        rightChild.parent = node.parent; 
-        if (node.parent === null) { //If node was the at t he root, make rightChild the new root...
+        rightChild.parent = node.parent;
+        if (node.parent === null) {
             this.root = rightChild;
-        } else if (node === node.parent.left) { //If node was the left child, node.parent.left updates to rightChild...
+        } else if (node === node.parent.left) {
             node.parent.left = rightChild;
-        } else { //If node was the right child, node.parent.right updates to rightChild...
+        } else {
             node.parent.right = rightChild;
         }
-        rightChild.left = node; //Sets node as right Child's left child.
-        node.parent = rightChild; //Sets rightChild as node's parent.
+        rightChild.left = node;
+        node.parent = rightChild;
+        console.log(`Left rotation complete for node ${node.value}`);
+    
+        renderTree();  // Re-render the tree after rotation
     }
-
-    //adjusts the tree structure to rotate the node to the right, which is  part of balancing the tree
+    
     rotateRight(node) {
+        console.log(`Starting right rotation on node ${node.value}`);
         let leftChild = node.left;
         node.left = leftChild.right;
         if (leftChild.right !== null) {
@@ -92,56 +95,111 @@ class RedBlackTree {
         }
         leftChild.right = node;
         node.parent = leftChild;
+        console.log(`Right rotation complete for node ${node.value}`);
+    
+        renderTree();  // Re-render the tree after rotation
     }
-
+    
     async fixInsertion(node) {
+        console.log(`Starting fixInsertion for node ${node.value}`);
+    
         while (node !== this.root && node.parent.color === 'red') {
-            if (node.parent === node.parent.parent.left) {
-                let uncle = node.parent.parent.right;
+            let parent = node.parent;
+            let grandparent = parent.parent;
+    
+            console.log(`Checking node ${node.value} with parent ${parent.value} and grandparent ${grandparent.value}`);
+    
+            if (parent === grandparent.left) {
+                let uncle = grandparent.right;
+    
+                console.log(`Uncle of node ${node.value} is ${uncle ? uncle.value : 'null'} (right child of grandparent)`);
     
                 // Case 1: Uncle is red (recoloring scenario)
                 if (uncle !== null && uncle.color === 'red') {
-                    console.log('Uncle is red, performing recoloring...');
+                    console.log(`Uncle is red, performing recoloring on parent ${parent.value} and uncle ${uncle.value}`);
+    
                     // Recolor parent and uncle black, grandparent red
-                    await this.animateRecoloring(node.parent, uncle, node.parent.parent);
+                    await this.animateRecoloring(parent, uncle, grandparent);
     
                     // Move up the tree to fix violations further up
-                    node = node.parent.parent;
+                    node = grandparent;
+                    console.log(`Moved up to grandparent node ${node.value}`);
+    
                 } else {
                     // Case 2: Uncle is black (rotation scenario)
-                    if (node === node.parent.right) {
-                        // Left rotate if the node is a right child
-                        node = node.parent;
-                        this.rotateLeft(node);
+                    console.log(`Uncle is black, proceeding to rotation scenario`);
+    
+                    // Blink the nodes only when a rotation is necessary
+                    await this.blinkYellow(node);  // Blink the current/new node
+                    await this.blinkYellow(parent);  // Blink the parent
+                    await this.blinkYellow(grandparent);  // Blink the grandparent
+    
+                    // Wait for the blink to complete
+                    await new Promise(resolve => setTimeout(resolve, 1000));  // Ensure blink completes before rotation
+    
+                    if (node === parent.right) {
+                        console.log(`Performing left rotation on parent node ${parent.value}`);
+                        node = parent;
+                        await this.animateRotation(node, 'left');  // Perform rotation animation before the logic
+                        this.rotateLeft(node);  // Perform left rotation
+                        console.log(`Left rotation complete for node ${node.value}`);
                     }
-                    // Recolor parent and grandparent and perform right rotation
-                    node.parent.color = 'black';
-                    node.parent.parent.color = 'red';
-                    this.rotateRight(node.parent.parent);
+    
+                    // Perform recoloring after rotation
+                    console.log(`Recoloring parent ${parent.value} to black and grandparent ${grandparent.value} to red`);
+                    parent.color = 'black';
+                    grandparent.color = 'red';
+    
+                    console.log(`Performing right rotation on grandparent node ${grandparent.value}`);
+                    await this.animateRotation(grandparent, 'right');  // Perform rotation animation before the logic
+                    this.rotateRight(grandparent);  // Perform right rotation
+                    console.log(`Right rotation complete for grandparent node ${grandparent.value}`);
                 }
             } else {
                 // Symmetric case: Parent is a right child of the grandparent
-                let uncle = node.parent.parent.left;
+                let uncle = grandparent.left;
+    
+                console.log(`Uncle of node ${node.value} is ${uncle ? uncle.value : 'null'} (left child of grandparent)`);
     
                 // Case 1: Uncle is red (recoloring scenario)
                 if (uncle !== null && uncle.color === 'red') {
-                    console.log('Uncle is red, performing recoloring...');
+                    console.log(`Uncle is red, performing recoloring on parent ${parent.value} and uncle ${uncle.value}`);
+    
                     // Recolor parent and uncle black, grandparent red
-                    await this.animateRecoloring(node.parent, uncle, node.parent.parent);
+                    await this.animateRecoloring(parent, uncle, grandparent);
     
                     // Move up the tree to fix violations further up
-                    node = node.parent.parent;
+                    node = grandparent;
+                    console.log(`Moved up to grandparent node ${node.value}`);
+    
                 } else {
                     // Case 2: Uncle is black (rotation scenario)
-                    if (node === node.parent.left) {
-                        // Right rotate if the node is a left child
-                        node = node.parent;
-                        this.rotateRight(node);
+                    console.log(`Uncle is black, proceeding to rotation scenario`);
+    
+                    // Blink the nodes only when a rotation is necessary
+                    await this.blinkYellow(node);  // Blink the current/new node
+                    await this.blinkYellow(parent);  // Blink the parent
+                    await this.blinkYellow(grandparent);  // Blink the grandparent
+    
+                    // Wait for the blink to complete
+                    await new Promise(resolve => setTimeout(resolve, 1000));  // Ensure blink completes before rotation
+    
+                    if (node === parent.left) {
+                        console.log(`Performing right rotation on parent node ${parent.value}`);
+                        node = parent;
+                        await this.animateRotation(node, 'right');  // Perform rotation animation before the logic
+                        this.rotateRight(node);  // Perform right rotation
+                        console.log(`Right rotation complete for node ${node.value}`);
                     }
-                    // Recolor parent and grandparent and perform left rotation
-                    node.parent.color = 'black';
-                    node.parent.parent.color = 'red';
-                    this.rotateLeft(node.parent.parent);
+    
+                    // Perform recoloring after rotation
+                    console.log(`Recoloring parent ${parent.value} to black and grandparent ${grandparent.value} to red`);
+                    parent.color = 'black';
+                    grandparent.color = 'red';
+    
+                    console.log(`Performing left rotation on grandparent node ${grandparent.value}`);
+                    await this.animateRotation(grandparent, 'left');  // Perform rotation animation before the logic
+                    this.rotateLeft(grandparent);  // Perform left rotation
                 }
             }
         }
@@ -149,7 +207,13 @@ class RedBlackTree {
         // Ensure the root is always black
         console.log('Ensuring root is black');
         await this.recolorBlack(this.root);  
+        console.log('FixInsertion complete');
     }
+    
+    
+    
+    
+    
     
     
     
@@ -239,8 +303,7 @@ class RedBlackTree {
         }
     }
 
-    // This method searches for a node with the specified value in the Red-Black Tree.
-    findNode(value) {
+     findNode(value) {
         let current = this.root;// Start the search from the root of the tree.
         while (current !== null && current.value !== value) { // Traverse the tree until the node is found or we reach a null reference.
             //// If the value to be found is less than the current node's value, go to the left child...
@@ -379,25 +442,19 @@ class RedBlackTree {
     async animateRecoloring(parent, uncle, grandparent) {
         console.log(`Starting recoloring for parent node ${parent.value}...`);
     
-        // Blink and recolor parent
+        // Only animate and recolor if the color needs to change
         if (parent.color !== 'black') {
             console.log(`Blinking and recoloring parent: ${parent.value}`);
             await this.blinkNode(parent, 'black');  // Blink before recoloring
             await this.recolorBlack(parent);        // Then recolor
         }
     
-        console.log(`Starting recoloring for uncle node ${uncle ? uncle.value : 'null'}`);
-    
-        // Blink and recolor uncle, if it exists
         if (uncle !== null && uncle.color !== 'black') {
             console.log(`Blinking and recoloring uncle: ${uncle.value}`);
             await this.blinkNode(uncle, 'black');  // Blink before recoloring
             await this.recolorBlack(uncle);        // Then recolor
         }
     
-        console.log(`Starting recoloring for grandparent node ${grandparent.value}...`);
-    
-        // Blink and recolor grandparent
         if (grandparent.color !== 'red') {
             console.log(`Blinking and recoloring grandparent: ${grandparent.value}`);
             await this.blinkNode(grandparent, 'red');  // Blink before recoloring
@@ -406,6 +463,21 @@ class RedBlackTree {
     
         renderTree();  // Re-render the entire tree after blinking and recoloring are complete
     }
+    
+    async animateRotation(node, direction) {
+        console.log(`Animating ${direction} rotation on node ${node.value}`);
+        const nodeElement = document.getElementById(`node-${node.value}`);
+        if (nodeElement) {
+            nodeElement.classList.add(`rotate-${direction}`);  // Add a class to animate the rotation
+    
+            await new Promise(resolve => setTimeout(resolve, 1000));  // Wait for the rotation animation
+    
+            nodeElement.classList.remove(`rotate-${direction}`);  // Remove the class after animation completes
+        } else {
+            console.error(`Could not find DOM element for node ${node.value}`);
+        }
+    }
+    
 
 
 
@@ -878,10 +950,6 @@ document.getElementById('nodeValue').addEventListener('keypress', function (e) {
         insertNode();
     }
 });
-
-
-
-
 
 
 

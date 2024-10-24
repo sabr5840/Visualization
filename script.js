@@ -468,20 +468,104 @@ class RedBlackTree {
     
         renderTree();  // Re-render the entire tree after blinking and recoloring are complete
     }
-    
+
     async animateRotation(node, direction) {
         console.log(`Animating ${direction} rotation on node ${node.value}`);
-        const nodeElement = document.getElementById(`node-${node.value}`);
-        if (nodeElement) {
-            nodeElement.classList.add(`rotate-${direction}`);  // Add a class to animate the rotation
-    
-            await new Promise(resolve => setTimeout(resolve, 1000));  // Wait for the rotation animation
-    
-            nodeElement.classList.remove(`rotate-${direction}`);  // Remove the class after animation completes
-        } else {
-            console.error(`Could not find DOM element for node ${node.value}`);
+        
+        const grandparentElement = document.getElementById(`node-${node.value}`); // Node 20
+        const parentNode = direction === 'left' ? node.right : node.left; // Node 30
+        const parentElement = document.getElementById(`node-${parentNode.value}`);
+        
+        // New Node (40) to animate before rotation
+        const newNode = parentNode.right; // Node 40
+        const newNodeElement = document.getElementById(`node-${newNode.value}`);
+        
+        if (!grandparentElement || !parentElement || !newNodeElement) {
+            console.error("Could not find elements for grandparent, parent, or new node during rotation animation.");
+            return;
         }
+
+        // Get initial positions of grandparent, parent, and new node
+        const grandparentX = parseFloat(grandparentElement.getAttribute('cx')); // Node 20's current X
+        const grandparentY = parseFloat(grandparentElement.getAttribute('cy')); // Node 20's current Y
+        const parentX = parseFloat(parentElement.getAttribute('cx')); // Node 30's current X
+        const parentY = parseFloat(parentElement.getAttribute('cy')); // Node 30's current Y
+        const newNodeX = parseFloat(newNodeElement.getAttribute('cx')); // Node 40's current X
+        const newNodeY = parseFloat(newNodeElement.getAttribute('cy')); // Node 40's current Y
+
+        // Calculate target positions:
+        // Grandparent (20) moves down left
+        const targetGrandparentX = grandparentX - 50; // Adjust left as needed
+        const targetGrandparentY = grandparentY + 80; // Move down
+        
+        // Parent (30) takes the grandparent's position
+        const targetParentX = grandparentX;
+        const targetParentY = grandparentY;
+        
+        // New Node (40) moves to where the parent was
+        const targetNewNodeX = parentX;
+        const targetNewNodeY = parentY;
+
+        // Step 1: Move the new node (40) to the parent's (30) current position
+        this.animateNode(newNodeElement, targetNewNodeX, targetNewNodeY);
+        
+        // Wait for the new node movement to complete before proceeding
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Step 2: Move the parent (30) to the grandparent's (20) position
+        this.animateNode(parentElement, targetParentX, targetParentY);
+        
+        // Wait for the parent node to reach the grandparent's position
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // Step 3: Move the grandparent (20) down to its new position (left of 30)
+        this.animateNode(grandparentElement, targetGrandparentX, targetGrandparentY);
+
+        // Wait for the grandparent's movement to complete
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        console.log(`${direction} rotation animation complete`);
     }
+
+    
+    
+    
+    // Helper function to animate node movement smoothly, including the node value (text)
+    animateNode(nodeElement, targetX, targetY) {
+        // Get current position of the circle
+        const startX = parseFloat(nodeElement.getAttribute('cx'));
+        const startY = parseFloat(nodeElement.getAttribute('cy'));
+
+        // Find the corresponding text element by the node's ID
+        const nodeValueElement = document.querySelector(`text[x="${startX}"][y="${startY + 4}"]`);
+
+        if (!nodeValueElement) {
+            console.error("Could not find the text element for the node", nodeElement);
+            return;
+        }
+
+        // Apply smooth transition to both the node (circle) and the text
+        nodeElement.style.transition = 'transform 1s ease-in-out';
+        nodeValueElement.style.transition = 'transform 1s ease-in-out';
+
+        // Calculate the movement based on the target X and Y positions
+        nodeElement.style.transform = `translate(${targetX - startX}px, ${targetY - startY}px)`;
+        nodeValueElement.style.transform = `translate(${targetX - startX}px, ${targetY - startY}px)`;
+
+        // Update position after the transition completes (for final positions)
+        setTimeout(() => {
+            nodeElement.setAttribute('cx', targetX);
+            nodeElement.setAttribute('cy', targetY);
+            nodeValueElement.setAttribute('x', targetX);  // Move the text to the target X position
+            nodeValueElement.setAttribute('y', targetY + 4);  // Adjust Y for proper centering in the circle
+            nodeElement.style.transform = '';  // Clear the transformation
+            nodeValueElement.style.transform = '';  // Clear the transformation
+        }, 10000); // Matches the transition duration
+    }
+
+    
+    
+    
     
 
 

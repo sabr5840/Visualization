@@ -53,11 +53,19 @@ class RedBlackTree {
         renderTree();
     }
     
-
-
-
-    rotateLeft(node) {
+    async rotateLeft(node) {
         console.log(`Starting left rotation on node ${node.value}`);
+        
+        // Identify source and target nodes for animation
+        const sourceNode = document.getElementById(`node-${node.value}`);
+        const targetNode = node.right ? document.getElementById(`node-${node.right.value}`) : null;
+    
+        if (sourceNode && targetNode) {
+            // Call animateLineDrawing and wait for it to finish
+            await this.animateLineDrawing(targetNode, sourceNode, true);
+        }
+    
+        // Proceed with the rotation logic
         let rightChild = node.right;
         node.right = rightChild.left;
         if (rightChild.left !== null) {
@@ -73,13 +81,27 @@ class RedBlackTree {
         }
         rightChild.left = node;
         node.parent = rightChild;
+    
         console.log(`Left rotation complete for node ${node.value}`);
     
-        renderTree();  // Re-render the tree after rotation
+        // Trigger recoloring after rotation and line animation
+        if (node.color === 'red') await this.recolorBlack(node);
+        renderTree(); // Re-render the tree after rotation
     }
     
-    rotateRight(node) {
+    async rotateRight(node) {
         console.log(`Starting right rotation on node ${node.value}`);
+        
+        // Identify source and target nodes for animation
+        const sourceNode = document.getElementById(`node-${node.value}`);
+        const targetNode = node.left ? document.getElementById(`node-${node.left.value}`) : null;
+    
+        if (sourceNode && targetNode) {
+            // Call animateLineDrawing and wait for it to finish
+            await this.animateLineDrawing(targetNode, sourceNode);
+        }
+    
+        // Perform the right rotation logic
         let leftChild = node.left;
         node.left = leftChild.right;
         if (leftChild.right !== null) {
@@ -95,17 +117,101 @@ class RedBlackTree {
         }
         leftChild.right = node;
         node.parent = leftChild;
+    
         console.log(`Right rotation complete for node ${node.value}`);
     
-        renderTree();  // Re-render the tree after rotation
+        // Trigger recoloring after rotation and line animation
+        if (node.color === 'red') await this.recolorBlack(node);
+        renderTree(); // Re-render the tree after rotation
+    }
+      
+
+    animateLineDrawing(sourceNode, targetNode) {
+        return new Promise((resolve) => {
+            let svgContainer = document.getElementById('svgCanvas');
+            if (!svgContainer) {
+                const treeContainer = document.getElementById('tree');
+                svgContainer = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                svgContainer.setAttribute('id', 'svgCanvas');
+                treeContainer.appendChild(svgContainer);
+            }
+    
+            const treeContainer = document.getElementById('tree');
+            const sourceRect = sourceNode.getBoundingClientRect();
+            const targetRect = targetNode.getBoundingClientRect();
+            const containerRect = treeContainer.getBoundingClientRect();
+            
+            // Node radius (assuming circular nodes, adjust as needed)
+            const nodeRadius = sourceRect.width / 2;
+    
+            // Calculate node center positions relative to `#tree`
+            let sourceXCenter = sourceRect.left + sourceRect.width / 2 - containerRect.left;
+            let sourceYCenter = sourceRect.top + sourceRect.height / 2 - containerRect.top;
+            let targetXCenter = targetRect.left + targetRect.width / 2 - containerRect.left;
+            let targetYCenter = targetRect.top + targetRect.height / 2 - containerRect.top;
+    
+            // Calculate direction vector from source to target
+            const directionX = targetXCenter - sourceXCenter;
+            const directionY = targetYCenter - sourceYCenter;
+            const length = Math.sqrt(directionX ** 2 + directionY ** 2);
+    
+            // Adjust start and end positions to be on the node's border
+            let sourceX = sourceXCenter + (directionX / length) * nodeRadius;
+            let sourceY = sourceYCenter + (directionY / length) * nodeRadius;
+            let targetX = targetXCenter - (directionX / length) * nodeRadius;
+            let targetY = targetYCenter - (directionY / length) * nodeRadius;
+    
+            console.log(`Source Node Border Position (X, Y): (${sourceX}, ${sourceY})`);
+            console.log(`Target Node Border Position (X, Y): (${targetX}, ${targetY})`);
+    
+            // Create and configure the line for animation
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', sourceX);
+            line.setAttribute('y1', sourceY);
+            line.setAttribute('x2', sourceX); // Start from source position
+            line.setAttribute('y2', sourceY); // Start from source position
+            line.setAttribute('stroke', 'black');
+            line.setAttribute('stroke-width', 2);
+            line.setAttribute('marker-end', 'url(#arrow)');
+    
+            svgContainer.appendChild(line);
+    
+            // Use requestAnimationFrame to animate the line to its target position
+            const duration = 1500; // Animation duration in milliseconds
+            let start = null;
+    
+            function animate(timestamp) {
+                if (!start) start = timestamp;
+                const elapsed = timestamp - start;
+                const progress = Math.min(elapsed / duration, 1); // Ensure progress doesn’t exceed 1
+    
+                // Interpolating the line position
+                const currentX = sourceX + progress * (targetX - sourceX);
+                const currentY = sourceY + progress * (targetY - sourceY);
+    
+                line.setAttribute('x2', currentX);
+                line.setAttribute('y2', currentY);
+    
+                if (progress < 1) {
+                    requestAnimationFrame(animate); // Continue animation
+                } else {
+                    console.log(`Line animation complete from (${sourceX}, ${sourceY}) to (${targetX}, ${targetY})`);
+                    setTimeout(() => {
+                        svgContainer.removeChild(line); // Remove the line after a short delay
+                        resolve();
+                    }, 500);
+                }
+            }
+            requestAnimationFrame(animate); // Start the animation
+        });
     }
 
     async fixInsertion(node) {
         console.log(`Starting fixInsertion for node ${node.value}`);
-    
+        
         // Delay to ensure node has been rendered in the DOM before trying to blink
         await new Promise(resolve => setTimeout(resolve, 500));
-    
+        
         while (node !== this.root && node.parent.color === 'red') {
             let parent = node.parent;
             let grandparent = parent.parent;
@@ -138,16 +244,16 @@ class RedBlackTree {
     
                         // Animate and perform the left rotation
                         await this.animateRotation(node, 'left');
-                        this.rotateLeft(node);  // Actual rotation logic
+                        await this.rotateLeft(node);  // Actual rotation logic
                         console.log(`Left rotation complete for node ${node.value}`);
                     }
     
                     console.log(`Performing right rotation on grandparent node ${grandparent.value}`);
                     await this.animateRotation(grandparent, 'right');
-                    this.rotateRight(grandparent);  // Actual right rotation
+                    await this.rotateRight(grandparent);  // Actual right rotation
                     console.log(`Right rotation complete for grandparent node ${grandparent.value}`);
     
-                    // Now trigger the recoloring animation after both rotations are complete
+                    // Ensure line animation (if any) completes before recoloring
                     console.log(`Animating recoloring for parent ${parent.value} and grandparent ${grandparent.value}`);
                     await this.animateRecoloring(parent, null, grandparent); // Recoloring animation only for parent and grandparent
     
@@ -183,16 +289,16 @@ class RedBlackTree {
     
                         // Animate and perform the right rotation
                         await this.animateRotation(node, 'right');
-                        this.rotateRight(node);  // Actual rotation logic
+                        await this.rotateRight(node);  // Actual rotation logic
                         console.log(`Right rotation complete for node ${node.value}`);
                     }
     
                     console.log(`Performing left rotation on grandparent node ${grandparent.value}`);
                     await this.animateRotation(grandparent, 'left');
-                    this.rotateLeft(grandparent);  // Actual left rotation
+                    await this.rotateLeft(grandparent);  // Actual left rotation
                     console.log(`Left rotation complete for grandparent node ${grandparent.value}`);
     
-                    // Now trigger the recoloring animation after both rotations are complete
+                    // Ensure line animation (if any) completes before recoloring
                     console.log(`Animating recoloring for parent ${parent.value} and grandparent ${grandparent.value}`);
                     await this.animateRecoloring(parent, null, grandparent); // Recoloring animation only for parent and grandparent
     
@@ -210,25 +316,13 @@ class RedBlackTree {
     }
     
     
-    
-    
-
-    
-    
-    
-    
-    
-    
-    
-    
-    
     blinkYellow(node) {
         const nodeElement = document.getElementById(`node-${node.value}`); // Get the DOM element for the node
         if (nodeElement) {
             nodeElement.classList.add('blink-yellow'); // Add the blinking class
             setTimeout(() => {
-                nodeElement.classList.remove('blink-yellow'); // Remove the blinking class after 2 seconds
-            }, 2000); // Blink for 2 seconds
+                nodeElement.classList.remove('blink-yellow'); 
+            }, 5000); 
         }
     }
     
@@ -308,7 +402,7 @@ class RedBlackTree {
         }
     }
 
-     findNode(value) {
+    findNode(value) {
         let current = this.root;// Start the search from the root of the tree.
         while (current !== null && current.value !== value) { // Traverse the tree until the node is found or we reach a null reference.
             //// If the value to be found is less than the current node's value, go to the left child...
@@ -477,59 +571,49 @@ class RedBlackTree {
         const parentElement = document.getElementById(`node-${parentNode.value}`);
         
         // New Node (40) to animate before rotation
-        const newNode = parentNode.right; // Node 40
-        const newNodeElement = document.getElementById(`node-${newNode.value}`);
+        const newNode = direction === 'left' ? parentNode.right : parentNode.left; // Node 40
+        const newNodeElement = newNode ? document.getElementById(`node-${newNode.value}`) : null;
         
-        if (!grandparentElement || !parentElement || !newNodeElement) {
+        if (!grandparentElement || !parentElement || (newNode && !newNodeElement)) {
             console.error("Could not find elements for grandparent, parent, or new node during rotation animation.");
             return;
         }
-
+    
         // Get initial positions of grandparent, parent, and new node
-        const grandparentX = parseFloat(grandparentElement.getAttribute('cx')); // Node 20's current X
-        const grandparentY = parseFloat(grandparentElement.getAttribute('cy')); // Node 20's current Y
-        const parentX = parseFloat(parentElement.getAttribute('cx')); // Node 30's current X
-        const parentY = parseFloat(parentElement.getAttribute('cy')); // Node 30's current Y
-        const newNodeX = parseFloat(newNodeElement.getAttribute('cx')); // Node 40's current X
-        const newNodeY = parseFloat(newNodeElement.getAttribute('cy')); // Node 40's current Y
-
-        // Calculate target positions:
-        // Grandparent (20) moves down left
-        const targetGrandparentX = grandparentX - 50; // Adjust left as needed
-        const targetGrandparentY = grandparentY + 80; // Move down
-        
-        // Parent (30) takes the grandparent's position
+        const grandparentX = parseFloat(grandparentElement.getAttribute('cx')); 
+        const grandparentY = parseFloat(grandparentElement.getAttribute('cy'));
+        const parentX = parseFloat(parentElement.getAttribute('cx')); 
+        const parentY = parseFloat(parentElement.getAttribute('cy'));
+        const newNodeX = newNodeElement ? parseFloat(newNodeElement.getAttribute('cx')) : null; 
+        const newNodeY = newNodeElement ? parseFloat(newNodeElement.getAttribute('cy')) : null;
+    
+        // Calculate target positions based on the rotation direction
+        const offset = 50;
+        const targetGrandparentX = grandparentX + (direction === 'left' ? -offset : offset);
+        const targetGrandparentY = grandparentY + 80;
         const targetParentX = grandparentX;
         const targetParentY = grandparentY;
-        
-        // New Node (40) moves to where the parent was
         const targetNewNodeX = parentX;
         const targetNewNodeY = parentY;
-
-        // Step 1: Move the new node (40) to the parent's (30) current position
-        this.animateNode(newNodeElement, targetNewNodeX, targetNewNodeY);
+    
+        // Step 1: Move the new node to the parent's current position
+        if (newNodeElement) {
+            this.animateNode(newNodeElement, targetNewNodeX, targetNewNodeY);
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for the movement
+        }
         
-        // Wait for the new node movement to complete before proceeding
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Step 2: Move the parent (30) to the grandparent's (20) position
+        // Step 2: Move the parent to the grandparent's position
         this.animateNode(parentElement, targetParentX, targetParentY);
-        
-        // Wait for the parent node to reach the grandparent's position
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        // Step 3: Move the grandparent (20) down to its new position (left of 30)
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for movement to complete
+    
+        // Step 3: Move the grandparent to its new position
         this.animateNode(grandparentElement, targetGrandparentX, targetGrandparentY);
-
-        // Wait for the grandparent's movement to complete
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for movement to complete
         
         console.log(`${direction} rotation animation complete`);
     }
+    
 
-    
-    
-    
     // Helper function to animate node movement smoothly, including the node value (text)
     animateNode(nodeElement, targetX, targetY) {
         // Get current position of the circle
@@ -562,15 +646,6 @@ class RedBlackTree {
             nodeValueElement.style.transform = '';  // Clear the transformation
         }, 10000); // Matches the transition duration
     }
-
-    
-    
-    
-    
-
-
-
-
 
     // This method searches for a node with the specified value in the Red-Black Tree.
     search(value) {
@@ -708,8 +783,6 @@ function renderNode(node, container, parentNode, isLeft) {
         }, 500);
     }
 }
-
-
 
 // This function deletes a node with the specified value from the Red-Black Tree.
 function deleteNode() {
@@ -876,7 +949,6 @@ function renderPredefinedTree() {
     renderTree(); // Render the tree
 }
 
-
 // This function visualizes the Red-Black Tree and optionally highlights a specific node.
 function renderTree(foundNode = null) {
     // Get the container element where the tree will be rendered and clear its contents.
@@ -1031,20 +1103,11 @@ function renderTree(foundNode = null) {
     }
 }
 
-
-
-
 document.getElementById('nodeValue').addEventListener('keypress', function (e) {
     if (e.key === 'Enter') {
         insertNode();
     }
 });
-
-
-
-
-
-
 
 
 

@@ -209,6 +209,17 @@ button:active {
 
 }
 
+#svgCanvas {
+    position: absolute; /* Aligns SVG with the tree container */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* Ensures SVG doesn’t interfere with user interactions */
+    overflow: hidden; /* Avoids overflow issues */
+
+}
+
 @media (max-width: 768px) {
     #tree {
         height: 400px;

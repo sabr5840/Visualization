@@ -22,7 +22,7 @@
         <button onclick="insertNode()">Insert Node</button>
         <button onclick="deleteNode()">Delete Node</button>
         <button onclick="searchNode()">Search Node</button>
-        <button onclick="renderPredefinedTree()">Render Predefined Tree</button>
+        <button id="openModalBtn">Predefined Tree</button>
         <button id="printBtn">Print</button>
     </div>
 
@@ -33,6 +33,17 @@
             <button onclick="startAnimatedTraversal('inOrder')">In-Order Traversal</button>
             <button onclick="startAnimatedTraversal('preOrder')">Pre-Order Traversal</button>
             <button onclick="startAnimatedTraversal('postOrder')">Post-Order Traversal</button>
+        </div>
+    </div>
+
+        <!-- Modal Structure -->
+    <div id="treeModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeModalBtn">&times;</span>
+            <h2>Select a Predefined Tree</h2>
+            <button onclick="renderPredefinedTree1()">Depth 2</button>
+            <button onclick="renderPredefinedTree2()">Depth 3</button>
+            <button onclick="renderPredefinedTree3()">Depth 4</button>
         </div>
     </div>
 

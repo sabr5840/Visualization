@@ -1003,37 +1003,7 @@ function clearBlink(nodeElement, originalColor) {
     nodeElement.style.backgroundColor = originalColor; // Restore original background color
 }
 
-function renderPredefinedTree() {
-    // Clear the existing tree
-    const treeContainer = document.getElementById('tree');
-    treeContainer.innerHTML = ''; // Clear any previous tree
 
-    // Create a new red-black tree
-    const predefinedTree = new RedBlackTree();
-
-    // Manually insert the nodes to create the desired tree structure
-    predefinedTree.root = new Node(10, 'black');
-    
-    // Left subtree
-    predefinedTree.root.left = new Node(5, 'black');
-    predefinedTree.root.left.left = new Node(3, 'red'); // Left child of node 5
-    predefinedTree.root.left.right = new Node(7, 'red'); // Right child of node 5
-
-    // Right subtree
-    predefinedTree.root.right = new Node(20, 'black');
-    predefinedTree.root.right.right = new Node(30, 'red'); // Right child of node 20
-
-    // Link parent-child relationships
-    predefinedTree.root.left.parent = predefinedTree.root;
-    predefinedTree.root.left.left.parent = predefinedTree.root.left;
-    predefinedTree.root.left.right.parent = predefinedTree.root.left;
-    predefinedTree.root.right.parent = predefinedTree.root;
-    predefinedTree.root.right.right.parent = predefinedTree.root.right;
-
-    // Now render this tree visually
-    tree.root = predefinedTree.root; // Set the tree root to this predefined tree root
-    renderTree(); // Render the tree
-}
 
 // This function visualizes the Red-Black Tree and optionally highlights a specific node.
 function renderTree(foundNode = null) {
@@ -1196,8 +1166,6 @@ document.getElementById('nodeValue').addEventListener('keypress', function (e) {
 });
 
 
-
-
 // Function to open the modal for traversal selection
 document.getElementById("printBtn").onclick = function() {
     document.getElementById("traversalModal").style.display = "block"; // Show modal
@@ -1313,6 +1281,96 @@ function startAnimatedTraversal(type) {
     } else if (type === 'postOrder') {
         animatePostOrder(tree.root, circle);
     }
+}
+
+// Modal functionality
+document.getElementById("openModalBtn").onclick = function() {
+    document.getElementById("treeModal").style.display = "block"; // Show modal
+};
+
+document.getElementById("closeModalBtn").onclick = function() {
+    document.getElementById("treeModal").style.display = "none"; // Hide modal
+};
+
+window.onclick = function(event) {
+    const modal = document.getElementById("treeModal");
+    if (event.target === modal) {
+        modal.style.display = "none";
+    }
+};
+
+// Function to render Predefined Tree 1 (Depth: 2)
+function renderPredefinedTree1() {
+    const treeContainer = document.getElementById('tree');
+    treeContainer.innerHTML = ''; // Clear any previous tree
+
+    const predefinedTree = new RedBlackTree();
+
+    // Structure: Depth 2
+    predefinedTree.root = new Node(10, 'black');
+    predefinedTree.root.left = new Node(5, 'red');
+    predefinedTree.root.right = new Node(15, 'red');
+
+    // Link parent-child relationships
+    predefinedTree.root.left.parent = predefinedTree.root;
+    predefinedTree.root.right.parent = predefinedTree.root;
+
+    tree.root = predefinedTree.root; 
+    renderTree(); 
+}
+
+// Function to render Predefined Tree 2 (Depth: 3)
+function renderPredefinedTree2() {
+    const treeContainer = document.getElementById('tree');
+    treeContainer.innerHTML = ''; // Clear any previous tree
+
+    const predefinedTree = new RedBlackTree();
+
+    // Structure: Depth 3
+    predefinedTree.root = new Node(20, 'black');
+    predefinedTree.root.left = new Node(10, 'red');
+    predefinedTree.root.right = new Node(30, 'red');
+    predefinedTree.root.left.left = new Node(5, 'black');
+    predefinedTree.root.left.right = new Node(15, 'black');
+
+    // Link parent-child relationships
+    predefinedTree.root.left.parent = predefinedTree.root;
+    predefinedTree.root.right.parent = predefinedTree.root;
+    predefinedTree.root.left.left.parent = predefinedTree.root.left;
+    predefinedTree.root.left.right.parent = predefinedTree.root.left;
+
+    tree.root = predefinedTree.root; 
+    renderTree(); 
+}
+
+// Function to render Predefined Tree 3 (Depth: 4)
+function renderPredefinedTree3() {
+    const treeContainer = document.getElementById('tree');
+    treeContainer.innerHTML = ''; // Clear any previous tree
+
+    const predefinedTree = new RedBlackTree();
+
+    // Structure: Depth 4
+    predefinedTree.root = new Node(50, 'black');
+    predefinedTree.root.left = new Node(30, 'red');
+    predefinedTree.root.right = new Node(70, 'red');
+    predefinedTree.root.left.left = new Node(20, 'black');
+    predefinedTree.root.left.right = new Node(40, 'black');
+    predefinedTree.root.right.left = new Node(60, 'black');
+    predefinedTree.root.right.right = new Node(80, 'black');
+    predefinedTree.root.left.left.left = new Node(10, 'red');
+
+    // Link parent-child relationships
+    predefinedTree.root.left.parent = predefinedTree.root;
+    predefinedTree.root.right.parent = predefinedTree.root;
+    predefinedTree.root.left.left.parent = predefinedTree.root.left;
+    predefinedTree.root.left.right.parent = predefinedTree.root.left;
+    predefinedTree.root.right.left.parent = predefinedTree.root.right;
+    predefinedTree.root.right.right.parent = predefinedTree.root.right;
+    predefinedTree.root.left.left.left.parent = predefinedTree.root.left.left;
+
+    tree.root = predefinedTree.root; 
+    renderTree(); 
 }
 
 

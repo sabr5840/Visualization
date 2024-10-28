@@ -1270,18 +1270,32 @@ function startAnimatedTraversal(type) {
     // Make traversal result visible
     const resultContainer = document.getElementById("traversalResult");
     resultContainer.style.display = "block"; // Show the result container
-
-    // Clear previous results
     resultContainer.innerHTML = ''; // Clear previous results
 
+    let traversalPromise;
     if (type === 'inOrder') {
-        animateInOrder(tree.root, circle);
+        traversalPromise = animateInOrder(tree.root, circle);
     } else if (type === 'preOrder') {
-        animatePreOrder(tree.root, circle);
+        traversalPromise = animatePreOrder(tree.root, circle);
     } else if (type === 'postOrder') {
-        animatePostOrder(tree.root, circle);
+        traversalPromise = animatePostOrder(tree.root, circle);
     }
+
+    traversalPromise.then(() => {
+        setTimeout(() => {
+            // Hide the green ring (assuming it's part of the circle or another element)
+            circle.style.display = 'none';  // Adjust this line if your green ring is represented differently
+
+            // Set timeout to clear the traversal results after 10 seconds
+            setTimeout(() => {
+                resultContainer.style.display = 'none'; // Hide the result container
+                resultContainer.innerHTML = ''; // Clear results visually
+            }, 10000); // 10 seconds delay to hide traversal results
+
+        }, 500); // 500 ms delay to hide green ring
+    });
 }
+
 
 // Modal functionality
 document.getElementById("openModalBtn").onclick = function() {

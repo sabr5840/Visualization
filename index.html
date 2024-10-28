@@ -13,13 +13,7 @@
         <div id="tree">
             <svg id="svgCanvas" width="100%" height="100%"></svg>
           </div>
-          
-        
-
-        <!-- Info box for explaining the rules of Red-Black trees -->
-
     </div>
-
     <!-- Input field for node value -->
     <input type="number" id="nodeValue" placeholder="Enter node value">
     
@@ -29,10 +23,21 @@
         <button onclick="deleteNode()">Delete Node</button>
         <button onclick="searchNode()">Search Node</button>
         <button onclick="renderPredefinedTree()">Render Predefined Tree</button>
-
+        <button id="printBtn">Print</button>
     </div>
 
-    <!-- Include the D3.js library and your script file -->
+    <div id="traversalModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Select Traversal Type</h2>
+            <button onclick="startAnimatedTraversal('inOrder')">In-Order Traversal</button>
+            <button onclick="startAnimatedTraversal('preOrder')">Pre-Order Traversal</button>
+            <button onclick="startAnimatedTraversal('postOrder')">Post-Order Traversal</button>
+        </div>
+    </div>
+
+    <div id="traversalResult" style="text-align: center; font-weight: bold; margin-top: 10px;">Traversal Result: </div>
+
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="script.js"></script>
 

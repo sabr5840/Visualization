@@ -1198,4 +1198,123 @@ document.getElementById('nodeValue').addEventListener('keypress', function (e) {
 
 
 
+// Function to open the modal for traversal selection
+document.getElementById("printBtn").onclick = function() {
+    document.getElementById("traversalModal").style.display = "block"; // Show modal
+};
+
+// Function to close modal
+document.querySelector('.close').onclick = function() {
+    document.getElementById("traversalModal").style.display = "none"; // Hide modal
+};
+
+// Function to ensure the highlight circle is present in the SVG
+function ensureHighlightCircle() {
+    let svgContainer = document.getElementById('svgCanvas');
+    if (!svgContainer) {
+        const treeContainer = document.getElementById('tree');
+        svgContainer = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svgContainer.setAttribute('id', 'svgCanvas');
+        svgContainer.setAttribute('width', '100%');
+        svgContainer.setAttribute('height', '100%');
+        treeContainer.appendChild(svgContainer);
+    }
+
+    let circle = document.getElementById("highlightCircle");
+    if (!circle) {
+        circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circle.setAttribute("id", "highlightCircle");
+        circle.setAttribute("r", 20); // Circle radius
+        circle.setAttribute("fill", "transparent"); // Fill color
+        circle.setAttribute("stroke", "green"); // Stroke color (as per .traversal-node-print)
+        circle.setAttribute("stroke-width", 5); // Stroke width (as per .traversal-node-print)
+
+        svgContainer.appendChild(circle);
+    }
+    return circle;
+}
+
+
+
+// Traverse the tree in in-order and animate the highlight circle
+async function animateInOrder(node, circle) {
+    if (node !== null) {
+        await animateInOrder(node.left, circle);
+        await moveHighlightTo(circle, node);
+        // Print node value
+        printNodeValue(node.value);
+        await animateInOrder(node.right, circle);
+    }
+}
+
+// Traverse the tree in pre-order and animate the highlight circle
+async function animatePreOrder(node, circle) {
+    if (node !== null) {
+        await moveHighlightTo(circle, node);
+        // Print node value
+        printNodeValue(node.value);
+        await animatePreOrder(node.left, circle);
+        await animatePreOrder(node.right, circle);
+    }
+}
+
+// Traverse the tree in post-order and animate the highlight circle
+async function animatePostOrder(node, circle) {
+    if (node !== null) {
+        await animatePostOrder(node.left, circle);
+        await animatePostOrder(node.right, circle);
+        await moveHighlightTo(circle, node);
+        // Print node value
+        printNodeValue(node.value);
+    }
+}
+
+// Move the highlight circle to the specified node
+async function moveHighlightTo(circle, node) {
+    return new Promise(resolve => {
+        const nodeElement = document.getElementById(`node-${node.value}`);
+        const rect = nodeElement.getBoundingClientRect();
+        const svgRect = document.getElementById('svgCanvas').getBoundingClientRect();
+
+        const newX = rect.left - svgRect.left + rect.width / 2;
+        const newY = rect.top - svgRect.top + rect.height / 2;
+
+        // Set new position of the circle
+        circle.setAttribute("cx", newX);
+        circle.setAttribute("cy", newY);
+
+        // Pause for effect before resolving
+        setTimeout(resolve, 2000); // Pause for 1 second
+    });
+}
+
+// Function to print the node value at the bottom of the tree container
+function printNodeValue(value) {
+    const resultContainer = document.getElementById("traversalResult");
+    resultContainer.innerHTML += `<span style="margin-right: 10px;">${value}</span>`; // Append the node value with spacing
+}
+
+// Function to start the animated traversal based on the selected type
+function startAnimatedTraversal(type) {
+    const circle = ensureHighlightCircle(); // Ensure the highlight circle exists
+    document.getElementById("traversalModal").style.display = "none"; // Close the modal
+
+    // Make traversal result visible
+    const resultContainer = document.getElementById("traversalResult");
+    resultContainer.style.display = "block"; // Show the result container
+
+    // Clear previous results
+    resultContainer.innerHTML = ''; // Clear previous results
+
+    if (type === 'inOrder') {
+        animateInOrder(tree.root, circle);
+    } else if (type === 'preOrder') {
+        animatePreOrder(tree.root, circle);
+    } else if (type === 'postOrder') {
+        animatePostOrder(tree.root, circle);
+    }
+}
+
+
+
 

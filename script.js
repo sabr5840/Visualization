@@ -124,7 +124,6 @@ class RedBlackTree {
         if (node.color === 'red') await this.recolorBlack(node);
         renderTree(); // Re-render the tree after rotation
     }
-      
 
     animateLineDrawing(sourceNode, targetNode) {
         return new Promise((resolve) => {
@@ -208,15 +207,19 @@ class RedBlackTree {
 
     async fixInsertion(node) {
         console.log(`Starting fixInsertion for node ${node.value}`);
-        
+    
         // Delay to ensure node has been rendered in the DOM before trying to blink
         await new Promise(resolve => setTimeout(resolve, 500));
-        
+    
         while (node !== this.root && node.parent.color === 'red') {
             let parent = node.parent;
             let grandparent = parent.parent;
     
             console.log(`Checking node ${node.value} with parent ${parent.value} and grandparent ${grandparent.value}`);
+    
+            // Highlight the line between the newly inserted node and its parent
+            const parentNodeElement = document.getElementById(`node-${parent.value}`);
+            this.blinkLine(parentNodeElement, document.getElementById(`node-${node.value}`), 3000, 40); // 40 is the desired length of the line
     
             if (parent === grandparent.left) {
                 let uncle = grandparent.right;
@@ -237,7 +240,7 @@ class RedBlackTree {
     
                     await new Promise(resolve => setTimeout(resolve, 1000));  // Ensure blink completes before rotation
     
-                    // Rotation logic first
+                    // Rotation logic
                     if (node === parent.right) {
                         console.log(`Performing left rotation on parent node ${parent.value}`);
                         node = parent;
@@ -253,12 +256,9 @@ class RedBlackTree {
                     await this.rotateRight(grandparent);  // Actual right rotation
                     console.log(`Right rotation complete for grandparent node ${grandparent.value}`);
     
-                    // Ensure line animation (if any) completes before recoloring
+                    // Recolor after rotation
                     console.log(`Animating recoloring for parent ${parent.value} and grandparent ${grandparent.value}`);
-                    await this.animateRecoloring(parent, null, grandparent); // Recoloring animation only for parent and grandparent
-    
-                    // Apply the final recoloring logic after animation
-                    console.log(`Recoloring parent ${parent.value} to black and grandparent ${grandparent.value} to red`);
+                    await this.animateRecoloring(parent, null, grandparent);
                     parent.color = 'black';
                     grandparent.color = 'red';
                 }
@@ -282,7 +282,7 @@ class RedBlackTree {
     
                     await new Promise(resolve => setTimeout(resolve, 1000));  // Ensure blink completes before rotation
     
-                    // Rotation logic first
+                    // Rotation logic
                     if (node === parent.left) {
                         console.log(`Performing right rotation on parent node ${parent.value}`);
                         node = parent;
@@ -298,12 +298,9 @@ class RedBlackTree {
                     await this.rotateLeft(grandparent);  // Actual left rotation
                     console.log(`Left rotation complete for grandparent node ${grandparent.value}`);
     
-                    // Ensure line animation (if any) completes before recoloring
+                    // Recolor after rotation
                     console.log(`Animating recoloring for parent ${parent.value} and grandparent ${grandparent.value}`);
-                    await this.animateRecoloring(parent, null, grandparent); // Recoloring animation only for parent and grandparent
-    
-                    // Apply the final recoloring logic after animation
-                    console.log(`Recoloring parent ${parent.value} to black and grandparent ${grandparent.value} to red`);
+                    await this.animateRecoloring(parent, null, grandparent);
                     parent.color = 'black';
                     grandparent.color = 'red';
                 }
@@ -311,9 +308,98 @@ class RedBlackTree {
         }
     
         console.log('Ensuring root is black');
-        await this.recolorBlack(this.root);  
+        await this.recolorBlack(this.root);
         console.log('FixInsertion complete');
     }
+
+    blinkLine(sourceNode, targetNode, duration = 1000, lineLength = 40) {
+        let svgContainer = document.getElementById('svgCanvas');
+        if (!svgContainer) {
+            // Create the SVG container if it doesn't exist
+            const treeContainer = document.getElementById('tree');
+            svgContainer = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            svgContainer.setAttribute('id', 'svgCanvas');
+            treeContainer.appendChild(svgContainer);
+        }
+
+        // Define the blinking arrow marker if it doesn't exist
+        let blinkArrowMarker = document.getElementById('blink-arrow');
+        if (!blinkArrowMarker) {
+            const defs = svgContainer.querySelector('defs') || svgContainer.appendChild(document.createElementNS("http://www.w3.org/2000/svg", "defs"));
+
+            blinkArrowMarker = document.createElementNS("http://www.w3.org/2000/svg", "marker");
+            blinkArrowMarker.setAttribute('id', 'blink-arrow');
+            blinkArrowMarker.setAttribute('viewBox', '0 0 10 10');
+            blinkArrowMarker.setAttribute('refX', 10);
+            blinkArrowMarker.setAttribute('refY', 5);
+            blinkArrowMarker.setAttribute('markerWidth', 6);
+            blinkArrowMarker.setAttribute('markerHeight', 6);
+            blinkArrowMarker.setAttribute('orient', 'auto-start-reverse');
+
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            path.setAttribute('d', 'M 0 0 L 10 5 L 0 10 z');
+            path.setAttribute('fill', 'red');
+            blinkArrowMarker.appendChild(path);
+
+            defs.appendChild(blinkArrowMarker);
+        }
+
+        // Get the positions of the source and target nodes
+        const sourceRect = sourceNode.getBoundingClientRect();
+        const targetRect = targetNode.getBoundingClientRect();
+        const containerRect = document.getElementById('tree').getBoundingClientRect();
+
+        // Calculate positions within the tree container
+        const startX = sourceRect.left + sourceRect.width / 2 - containerRect.left;
+        const startY = sourceRect.top + sourceRect.height / 2 - containerRect.top;
+        const endX = targetRect.left + targetRect.width / 2 - containerRect.left;
+        const endY = targetRect.top + targetRect.height / 2 - containerRect.top;
+
+        // Calculate the direction vector from source to target
+        const dx = endX - startX;
+        const dy = endY - startY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        // Normalize the direction vector
+        const normalizedDx = dx / distance;
+        const normalizedDy = dy / distance;
+
+        // Define the start and end positions based on the node radius (assuming nodes are circular)
+        const nodeRadius = sourceRect.width / 2;
+
+        // Adjust the start and end points to be on the border of the source and target nodes
+        const adjustedStartX = startX + normalizedDx * nodeRadius;
+        const adjustedStartY = startY + normalizedDy * nodeRadius;
+        const adjustedEndX = endX - normalizedDx * nodeRadius;
+        const adjustedEndY = endY - normalizedDy * nodeRadius;
+
+        // Create the line element
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', adjustedStartX);
+        line.setAttribute('y1', adjustedStartY);
+        line.setAttribute('x2', adjustedEndX);
+        line.setAttribute('y2', adjustedEndY);
+        line.setAttribute('stroke', 'red');
+        line.setAttribute('stroke-width', 2);
+        line.setAttribute('marker-end', 'url(#blink-arrow)');
+
+        // Add line to SVG and apply blink class
+        svgContainer.appendChild(line);
+        line.classList.add('blink-red-line');
+
+        // Blinking effect using CSS and JavaScript for the arrowhead and line
+        const blinkInterval = setInterval(() => {
+            line.classList.toggle('blink-red-line'); // Toggle line blinking
+        }, duration / 4); // Toggle blink state every quarter of the duration
+
+        // Remove blinking effect and line after duration
+        setTimeout(() => {
+            clearInterval(blinkInterval);
+            line.classList.remove('blink-red-line');
+            svgContainer.removeChild(line);
+        }, duration);
+    }
+
     
     
     blinkYellow(node) {

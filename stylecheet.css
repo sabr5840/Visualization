@@ -238,3 +238,23 @@ button:active {
     border: 1px dashed white;
 }
 
+@keyframes blink-red-line {
+    0% { stroke: red; }
+    50% { stroke: darkred; }
+    100% { stroke: red; }
+}
+
+.blink-red-line {
+    animation: blink-red-line 1s infinite;
+}
+
+/* Line pulsing effect */
+@keyframes pulse-red-line {
+    0%, 100% { stroke: red; transform: scale(1); }
+    50% { stroke: darkred; transform: scale(1.1); }
+}
+
+.pulse-red-line {
+    animation: pulse-red-line 1s infinite ease-in-out;
+}
+

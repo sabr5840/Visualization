@@ -30,9 +30,9 @@
         <div class="modal-content">
             <span class="close">&times;</span>
             <h2>Select Traversal Type</h2>
-            <button onclick="startAnimatedTraversal('inOrder')">In-Order Traversal</button>
-            <button onclick="startAnimatedTraversal('preOrder')">Pre-Order Traversal</button>
-            <button onclick="startAnimatedTraversal('postOrder')">Post-Order Traversal</button>
+            <button id="inOrderTraversalBtn" onclick="startAnimatedTraversal('inOrder')">In-Order Traversal</button>
+            <button id="preOrderTraversalBtn" onclick="startAnimatedTraversal('preOrder')">Pre-Order Traversal</button>
+            <button id="postOrderTraversalBtn" onclick="startAnimatedTraversal('postOrder')">Post-Order Traversal</button>    
         </div>
     </div>
 
@@ -41,9 +41,10 @@
         <div class="modal-content">
             <span class="close" id="closeModalBtn">&times;</span>
             <h2>Select a Predefined Tree</h2>
-            <button onclick="renderPredefinedTree1()">Depth 2</button>
-            <button onclick="renderPredefinedTree2()">Depth 3</button>
-            <button onclick="renderPredefinedTree3()">Depth 4</button>
+            <button id="renderTree1Btn" onclick="renderPredefinedTree1()">Depth 2</button>
+            <button id="renderTree2Btn" onclick="renderPredefinedTree2()">Depth 3</button>
+            <button id="renderTree3Btn" onclick="renderPredefinedTree3()">Depth 4</button>
+    
         </div>
     </div>
 

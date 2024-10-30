@@ -1298,59 +1298,27 @@ function ensureHighlightCircle() {
     return circle;
 }
 
-function moveHighlightToPrint(circle, startNodeElement, endNodeElement, duration = 1000) { 
-    // Ensure endNodeElement exists before proceeding
-    if (!endNodeElement) {
-        console.error("End node element is null, cannot highlight.");
-        return;
-    }
 
-    // If this is the first node (root), move the circle there directly
-    if (!startNodeElement) {
+function moveHighlightToPrint(circleElement, endNodeElement, duration = 1000) {
+    return new Promise((resolve) => {
+        if (!endNodeElement) {
+            console.error("End node element is null, cannot highlight.");
+            resolve();
+            return;
+        }
+
         const endX = parseFloat(endNodeElement.getAttribute('cx'));
         const endY = parseFloat(endNodeElement.getAttribute('cy'));
-        circle.setAttribute("cx", endX);
-        circle.setAttribute("cy", endY);
-        return;
-    }
 
-    // Otherwise, interpolate movement from start to end
-    const startX = parseFloat(startNodeElement.getAttribute('cx'));
-    const startY = parseFloat(startNodeElement.getAttribute('cy'));
-    const endX = parseFloat(endNodeElement.getAttribute('cx'));
-    const endY = parseFloat(endNodeElement.getAttribute('cy'));
-
-    const deltaX = endX - startX;
-    const deltaY = endY - startY;
-
-    const frames = 60; // Number of frames for the animation
-    const frameDuration = duration / frames;
-
-    let currentFrame = 0;
-
-    function animateStep() {
-        if (currentFrame < frames) {
-            const progress = currentFrame / frames;
-
-            // Interpolate between start and end positions
-            const currentX = startX + deltaX * progress;
-            const currentY = startY + deltaY * progress;
-
-            // Update circle position
-            circle.setAttribute("cx", currentX);
-            circle.setAttribute("cy", currentY);
-
-            currentFrame++;
-            setTimeout(animateStep, frameDuration);
-        } else {
-            // Ensure the circle lands precisely at the end position
-            circle.setAttribute("cx", endX);
-            circle.setAttribute("cy", endY);
-        }
-    }
-
-    animateStep(); // Start the animation
+        d3.select(circleElement)
+            .transition()
+            .duration(duration)
+            .attr('cx', endX)
+            .attr('cy', endY)
+            .on('end', resolve);
+    });
 }
+
 
 // Function to start the animated traversal based on the selected type
 function startAnimatedTraversal(type) {
@@ -1362,21 +1330,25 @@ function startAnimatedTraversal(type) {
     resultContainer.style.display = "block"; // Show the result container
     resultContainer.innerHTML = ''; // Clear previous results
 
+    let traversalState = {
+        previousNodeElement: null
+    };
+
     let traversalPromise;
     if (type === 'inOrder') {
-        traversalPromise = animateInOrder(tree.root, circle);
+        traversalPromise = animateInOrder(tree.root, circle, traversalState);
     } else if (type === 'preOrder') {
-        traversalPromise = animatePreOrder(tree.root, circle);
+        traversalPromise = animatePreOrder(tree.root, circle, traversalState);
     } else if (type === 'postOrder') {
-        traversalPromise = animatePostOrder(tree.root, circle);
+        traversalPromise = animatePostOrder(tree.root, circle, traversalState);
     }
 
     traversalPromise.then(() => {
         setTimeout(() => {
-            // Hide the green ring (assuming it's part of the circle or another element)
-            circle.style.display = 'none';  // Adjust this line if your green ring is represented differently
+            // Hide the green ring after traversal
+            circle.style.display = 'none';
 
-            // Set timeout to clear the traversal results after 10 seconds
+            // Clear traversal results after 10 seconds
             setTimeout(() => {
                 resultContainer.style.display = 'none'; // Hide the result container
                 resultContainer.innerHTML = ''; // Clear results visually
@@ -1386,55 +1358,59 @@ function startAnimatedTraversal(type) {
     });
 }
 
+
 // Traverse the tree in in-order and animate the highlight circle
-async function animateInOrder(node, circle, previousNodeElement = null) {
+async function animateInOrder(node, circleElement, traversalState) {
     if (node !== null) {
-        await animateInOrder(node.left, circle, previousNodeElement);
+        await animateInOrder(node.left, circleElement, traversalState);
 
         const nodeElement = document.getElementById(`node-${node.value}`);
         console.log(`In-order: Moving highlight to ${nodeElement.id}`);
-        await moveHighlightToPrint(circle, previousNodeElement, nodeElement, 1000);
+        await moveHighlightToPrint(circleElement, nodeElement, 1000);
 
         // Print node value after the circle has moved
         printNodeValue(node.value);
         await new Promise(resolve => setTimeout(resolve, 2000)); // Pause for 2 seconds
 
-        previousNodeElement = nodeElement; // Update previous node for the next call
-        await animateInOrder(node.right, circle, previousNodeElement);
+        traversalState.previousNodeElement = nodeElement; // Update previous node for the next call
+        await animateInOrder(node.right, circleElement, traversalState);
     }
 }
 
+
 // Similar adjustments for Pre-Order and Post-Order functions
-async function animatePreOrder(node, circle, previousNodeElement = null) {
+async function animatePreOrder(node, circleElement, traversalState) {
     if (node !== null) {
         const nodeElement = document.getElementById(`node-${node.value}`);
         console.log(`Pre-order: Moving highlight to ${nodeElement.id}`);
-        await moveHighlightToPrint(circle, previousNodeElement, nodeElement, 1000);
+        await moveHighlightToPrint(circleElement, nodeElement, 1000);
 
         printNodeValue(node.value);
         await new Promise(resolve => setTimeout(resolve, 2000)); // Pause for 2 seconds
 
-        previousNodeElement = nodeElement;
-        await animatePreOrder(node.left, circle, previousNodeElement);
-        await animatePreOrder(node.right, circle, previousNodeElement);
+        traversalState.previousNodeElement = nodeElement;
+        await animatePreOrder(node.left, circleElement, traversalState);
+        await animatePreOrder(node.right, circleElement, traversalState);
     }
 }
 
-async function animatePostOrder(node, circle, previousNodeElement = null) {
+
+async function animatePostOrder(node, circleElement, traversalState) {
     if (node !== null) {
-        await animatePostOrder(node.left, circle, previousNodeElement);
-        await animatePostOrder(node.right, circle, previousNodeElement);
+        await animatePostOrder(node.left, circleElement, traversalState);
+        await animatePostOrder(node.right, circleElement, traversalState);
 
         const nodeElement = document.getElementById(`node-${node.value}`);
         console.log(`Post-order: Moving highlight to ${nodeElement.id}`);
-        await moveHighlightToPrint(circle, previousNodeElement, nodeElement, 1000);
+        await moveHighlightToPrint(circleElement, nodeElement, 1000);
 
         printNodeValue(node.value);
         await new Promise(resolve => setTimeout(resolve, 2000)); // Pause for 2 seconds
 
-        previousNodeElement = nodeElement;
+        traversalState.previousNodeElement = nodeElement;
     }
 }
+
 
 // Function to print the node value at the bottom of the tree container
 function printNodeValue(value) {

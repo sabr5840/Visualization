@@ -8,10 +8,8 @@ class Node {
         this.right = null;
         this.parent = null;
     }
-
     
 }
-
 
 //new class which represents the entire tree structure.
 class RedBlackTree { 
@@ -89,6 +87,10 @@ class RedBlackTree {
         // Trigger recoloring after rotation and line animation
         if (node.color === 'red') await this.recolorBlack(node);
         renderTree(); // Re-render the tree after rotation
+    }
+
+    getColor(node) {
+        return node === null ? 'black' : node.color;
     }
 
     async rotateRight(node) {
@@ -317,7 +319,6 @@ class RedBlackTree {
         await this.recolorBlack(this.root);
         console.log('FixInsertion complete');
     }
-    
 
     blinkLine(sourceNode, targetNode, duration = 1000, lineLength = 40) {
         let svgContainer = document.getElementById('svgCanvas');
@@ -393,6 +394,49 @@ class RedBlackTree {
         }, duration);
     }
 
+    moveSuccessor(nodeToDelete, successor) {
+        if (!nodeToDelete || !successor) {
+            console.error("Invalid nodeToDelete or missing successor.");
+            return;
+        }
+    
+        const svgContainer = d3.select('#tree svg');
+        const successorCircle = svgContainer.select(`circle#node-${successor.value}`);
+        const successorText = svgContainer.select(`text#text-${successor.value}`);
+        const nodeToDeleteCircle = svgContainer.select(`circle#node-${nodeToDelete.value}`);
+        const nodeToDeleteText = svgContainer.select(`text#text-${nodeToDelete.value}`);
+    
+        if (!successorCircle.empty() && !nodeToDeleteCircle.empty()) {
+            const targetX = parseFloat(nodeToDeleteCircle.attr('cx'));
+            const targetY = parseFloat(nodeToDeleteCircle.attr('cy'));
+    
+            // Animate the successor moving to the deleted node's position
+            successorCircle.transition()
+                .duration(1000)
+                .attr('cx', targetX)
+                .attr('cy', targetY);
+    
+            successorText.transition()
+                .duration(1000)
+                .attr('x', targetX)
+                .attr('y', targetY + 4);
+        }
+    }
+    
+    // Method to find the successor of a given node in the tree
+    findSuccessor(node) {
+        if (node.right !== null) {
+            // The successor is the smallest node in the right subtree
+            return this.minimum(node.right);
+        }
+        // No right child, go up to the parent until we've found a node which is a left child of its parent
+        let parentNode = node.parent;
+        while (parentNode !== null && node === parentNode.right) {
+            node = parentNode;
+            parentNode = parentNode.parent;
+        }
+        return parentNode;
+    }
 
     blinkYellow(node) {
         const nodeElement = document.getElementById(`node-${node.value}`); // Get the DOM element for the node
@@ -436,50 +480,63 @@ class RedBlackTree {
     }
 
     //This method handles different deletion scenarios and ensures that the tree remains a Red-Black Tree after deletion
-    delete(value) {
-        const node = this.findNode(value); //Finds the node to delete.
-        if (node === null) return; //If the node is not found, do nothing.
-
-        let y = node; //will be used to handle the deletion process and potential replacement.
-        let yOriginalColor = y.color; //Saves the original color of the node to be deleted.
-        let x; //Initializes x to be used later.
-
-        // Case 1: Node to be deleted has no left child.
-        if (node.left === null) { 
-            x = node.right; // 'x' is set to the right child of the node.
-            this.transplant(node, node.right); // Replace the node with its right child.
-
-        // Case 2: Node to be deleted has no right child.    
-        } else if (node.right === null) {
-            x = node.left; // 'x' is set to the left child of the node.
-            this.transplant(node, node.left); //// Replace the node with its left child.
-
-        // Case 3: Node to be deleted has two children.    
-        } else {
-            y = this.minimum(node.right); // Find the minimum node in the right subtree.
-            yOriginalColor = y.color;// Store the color of the minimum node for later use.
-
-            x = y.right;// 'x' is set to the right child of the minimum node.
-            if (y.parent === node) { // If 'y' is not a direct child of the node, replace 'y' with its right child.
-                if (x !== null) x.parent = y;
-
-            } else {
-                this.transplant(y, y.right); // Replace 'y' with its right child.
-                y.right = node.right; // Reattach the right child of 'y' to the node being deleted...
+    async delete(value) {
+        const node = this.findNode(value);
+        if (!node) return;
+    
+        let y = node;
+        let yOriginalColor = y.color;
+        let x;
+    
+        // Case 1: Node with no children
+        if (node.left === null && node.right === null) {
+            await this.fadeOutNode(node); // Fade out the node as it has no children
+            x = null;
+            this.transplant(node, null);
+        }
+        // Case 2: Node with one child
+        else if (node.left === null || node.right === null) {
+            x = node.left === null ? node.right : node.left;
+    
+            // Fade out the node before moving its child up and transplanting
+            await this.fadeOutNode(node);
+    
+            this.moveNodeUp(x, node); // Animate the child moving up
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for animation to complete
+    
+            this.transplant(node, x);
+        }
+        // Case 3: Node with two children
+        else {
+            y = this.minimum(node.right);
+            yOriginalColor = y.color;
+            x = y.right;
+    
+            if (y.parent !== node) {
+                this.transplant(y, y.right);
+                y.right = node.right;
                 if (y.right !== null) y.right.parent = y;
             }
-            this.transplant(node, y); // Replace the node to be deleted with 'y'.
-            y.left = node.left; //// Attach the left child of the node to be deleted to 'y'.
+    
+            // Fade out the node before moving the successor and transplanting
+            await this.fadeOutNode(node);
+    
+            this.moveSuccessor(node, y); // Animate the successor moving up
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for animation to complete
+    
+            this.transplant(node, y);
+            y.left = node.left;
             if (y.left !== null) y.left.parent = y;
-            y.color = node.color; // Copy the color of the node being deleted to 'y'.
+            y.color = node.color;
         }
-
-        // If the original color of the node being deleted was black, fix any violations.
+    
         if (yOriginalColor === 'black') {
-            this.fixDeletion(x);
+            await this.fixDeletion(x);
         }
     }
-
+    
+      
+    
     findNode(value) {
         let current = this.root;// Start the search from the root of the tree.
         while (current !== null && current.value !== value) { // Traverse the tree until the node is found or we reach a null reference.
@@ -517,80 +574,74 @@ class RedBlackTree {
     }
 
     // This method restores the Red-Black Tree properties after a deletion.
-    fixDeletion(x) {
-        while (x !== this.root && (x === null || x.color === 'black')) { // Continue fixing until 'x' is the root or 'x' is not black.
-            if (x === x.parent.left) { // If 'x' is the left child of its parent.
-                let w = x.parent.right; // 'w' is the sibling of 'x'.
-
-                // Case 1: 'w' is red.
-                if (w.color === 'red') { 
-                    w.color = 'black'; //Recolor 'w' to black.
-                    x.parent.color = 'red'; // Recolor parent of 'x' to red.
-                    this.rotateLeft(x.parent); // Left rotate on the parent of 'x'.
-                    w = x.parent.right; // Update 'w' to the new sibling.
+    async fixDeletion(x) {
+        while (x !== this.root && this.getColor(x) === 'black') {
+            let parent = x ? x.parent : null;
+    
+            if (parent === null) {
+                // If parent is null, we've reached the root, break the loop
+                break;
+            }
+    
+            if (x === parent.left) {
+                let w = parent.right;
+    
+                if (this.getColor(w) === 'red') {
+                    await this.recolorBlack(w);
+                    await this.recolorRed(parent);
+                    await this.rotateLeft(parent);
+                    w = parent.right;
                 }
-
-                 // Case 2: Both children of 'w' are black.
-                if ((w.left === null || w.left.color === 'black') &&
-                    (w.right === null || w.right.color === 'black')) {
-                    w.color = 'red'; // Recolor 'w' to red.
-                    x = x.parent; // Move 'x' up the tree.
-
-                // Case 3: 'w's right child is black and left child is red.
-                } else { if (w.right === null || w.right.color === 'black') {
-                        if (w.left !== null) w.left.color = 'black'; // Recolor 'w's left child to black.
-                        w.color = 'red'; // Recolor 'w' to red.
-                        this.rotateRight(w); // Right rotate on 'w'.
-                        w = x.parent.right; // Update 'w' to the new sibling.
-                    }
-
-                    // Case 4: 'w's right child is red.    
-                    w.color = x.parent.color;  // Recolor 'w' to the parent's color.
-                    x.parent.color = 'black'; // Recolor parent of 'x' to black.
-                    if (w.right !== null) w.right.color = 'black'; // Recolor 'w's right child to black.
-                    this.rotateLeft(x.parent); // Left rotate on the parent of 'x'.
-                    x = this.root; // Set 'x' to root to exit loop.
-                }
-
-             // Mirror cases when 'x' is the right child of its parent.
-            } else {
-                let w = x.parent.left; // 'w' is the sibling of 'x', which is the left child of 'x's parent.
-
-                // Case 1: 'w' is red.
-                if (w.color === 'red') {
-                    w.color = 'black'; // Recolor 'w' to black.
-                    x.parent.color = 'red'; // Recolor parent of 'x' to red.
-                    this.rotateRight(x.parent); // Right rotate on the parent of 'x'.
-                    w = x.parent.left; // Update 'w' to the new sibling.
-                }
-
-                // Case 2: Both children of 'w' are black.
-                if ((w.right === null || w.right.color === 'black') && 
-                    (w.left === null || w.left.color === 'black')) { 
-                    w.color = 'red';  // Recolor 'w' to red.
-                    x = x.parent; // Move 'x' up the tree.
-
-                // Case 3: 'w's left child is black and right child is red.
+    
+                if (this.getColor(w.left) === 'black' && this.getColor(w.right) === 'black') {
+                    await this.recolorRed(w);
+                    x = parent;
                 } else {
-                    if (w.left === null || w.left.color === 'black') {
-                        if (w.right !== null) w.right.color = 'black'; // Recolor 'w's right child to black.
-                        w.color = 'red'; // Recolor 'w' to red.
-                        this.rotateLeft(w); // Left rotate on 'w'.
-                        w = x.parent.left; // Update 'w' to the new sibling.
+                    if (this.getColor(w.right) === 'black') {
+                        if (w.left !== null) await this.recolorBlack(w.left);
+                        await this.recolorRed(w);
+                        await this.rotateRight(w);
+                        w = parent.right;
                     }
-
-                    // Case 4: 'w's left child is red.
-                    w.color = x.parent.color; // Recolor 'w' to the parent's color.
-                    x.parent.color = 'black'; // Recolor parent of 'x' to black.
-                    if (w.left !== null) w.left.color = 'black'; // Recolor 'w's left child to black.
-                    this.rotateRight(x.parent); // Right rotate on the parent of 'x'.
-                    x = this.root;  // Set 'x' to root to exit loop.
+                    w.color = parent.color;
+                    await this.recolorBlack(parent);
+                    if (w.right !== null) await this.recolorBlack(w.right);
+                    await this.rotateLeft(parent);
+                    x = this.root;
+                }
+            } else {
+                // Symmetric case when x is the right child
+                let w = parent.left;
+    
+                if (this.getColor(w) === 'red') {
+                    await this.recolorBlack(w);
+                    await this.recolorRed(parent);
+                    await this.rotateRight(parent);
+                    w = parent.left;
+                }
+    
+                if (this.getColor(w.left) === 'black' && this.getColor(w.right) === 'black') {
+                    await this.recolorRed(w);
+                    x = parent;
+                } else {
+                    if (this.getColor(w.left) === 'black') {
+                        if (w.right !== null) await this.recolorBlack(w.right);
+                        await this.recolorRed(w);
+                        await this.rotateLeft(w);
+                        w = parent.left;
+                    }
+                    w.color = parent.color;
+                    await this.recolorBlack(parent);
+                    if (w.left !== null) await this.recolorBlack(w.left);
+                    await this.rotateRight(parent);
+                    x = this.root;
                 }
             }
         }
-        if (x !== null) x.color = 'black';  // Ensure 'x' is black.
+        if (x !== null) await this.recolorBlack(x);
     }
-
+    
+    
     async blinkNode(node, finalColor, duration = 1000) {
         const nodeElement = document.getElementById(`node-${node.value}`);
         if (nodeElement) {
@@ -643,28 +694,7 @@ class RedBlackTree {
 
     async animateRotation(node, direction) {
         console.log(`Animating ${direction} rotation on node ${node.value}`);
-
-        const grandparentElement = document.getElementById(`node-${node.value}`); // Node 20
-        const parentNode = direction === 'left' ? node.right : node.left; // Node 30
-        const parentElement = document.getElementById(`node-${parentNode.value}`);
-
-        // New Node (40) to animate before rotation
-        const newNode = direction === 'left' ? parentNode.right : parentNode.left; // Node 40
-        const newNodeElement = newNode ? document.getElementById(`node-${newNode.value}`) : null;
-
-        if (!grandparentElement || !parentElement || (newNode && !newNodeElement)) {
-            console.error("Could not find elements for grandparent, parent, or new node during rotation animation.");
-            return;
-        }
-
-        // Get initial positions of grandparent, parent, and new node
-        const grandparentX = parseFloat(grandparentElement.getAttribute('cx')); 
-        const grandparentY = parseFloat(grandparentElement.getAttribute('cy'));
-        const parentX = parseFloat(parentElement.getAttribute('cx')); 
-        const parentY = parseFloat(parentElement.getAttribute('cy'));
-        const newNodeX = newNodeElement ? parseFloat(newNodeElement.getAttribute('cx')) : null; 
-        const newNodeY = newNodeElement ? parseFloat(newNodeElement.getAttribute('cy')) : null;
-
+    
         // Calculate target positions based on the rotation direction
         const offset = 50;
         const targetGrandparentX = grandparentX + (direction === 'left' ? -offset : offset);
@@ -673,56 +703,71 @@ class RedBlackTree {
         const targetParentY = grandparentY;
         const targetNewNodeX = parentX;
         const targetNewNodeY = parentY;
-
-        // Step 1: Move the new node to the parent's current position
-        if (newNodeElement) {
-            this.animateNode(newNodeElement, targetNewNodeX, targetNewNodeY);
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for the movement
+    
+        // Animate the nodes using the updated animateNode function
+        if (newNode) {
+            await animateNode(newNode.value, targetNewNodeX, targetNewNodeY);
+            await new Promise(resolve => setTimeout(resolve, 1000));
         }
-
-        // Step 2: Move the parent to the grandparent's position
-        this.animateNode(parentElement, targetParentX, targetParentY);
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for movement to complete
-
-        // Step 3: Move the grandparent to its new position
-        this.animateNode(grandparentElement, targetGrandparentX, targetGrandparentY);
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for movement to complete
-
+    
+        await animateNode(parentNode.value, targetParentX, targetParentY);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+    
+        await animateNode(node.value, targetGrandparentX, targetGrandparentY);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+    
         console.log(`${direction} rotation animation complete`);
     }
-
-
-    // Helper function to animate node movement smoothly, including the node value (text)
-    animateNode(nodeElement, targetX, targetY) {
-        // Get current position of the circle
-        const startX = parseFloat(nodeElement.getAttribute('cx'));
-        const startY = parseFloat(nodeElement.getAttribute('cy'));
-
-        // Find the corresponding text element by the node's ID
-        const nodeValueElement = document.querySelector(`text[x="${startX}"][y="${startY + 4}"]`);
-
-        if (!nodeValueElement) {
-            console.error("Could not find the text element for the node", nodeElement);
-            return;
+    
+    async fadeOutNode(node) {
+        const svgContainer = d3.select('#tree svg');
+        const nodeElement = svgContainer.select(`circle#node-${node.value}`);
+        const textElement = svgContainer.select(`text#text-${node.value}`);
+    
+        if (!nodeElement.empty() && !textElement.empty()) {
+            // Bring node and text to front
+            nodeElement.raise();
+            textElement.raise();
+    
+            // Apply fade-out transition to both elements
+            nodeElement.transition()
+                .duration(1000)
+                .style('opacity', 0)
+                .remove(); // Remove after transition
+    
+            textElement.transition()
+                .duration(1000)
+                .style('opacity', 0)
+                .remove(); // Remove after transition
+    
+            // Wait for the transition to complete
+            await new Promise(resolve => setTimeout(resolve, 1000));
         }
+    }
+    
 
-        // Apply smooth transition to both the node (circle) and the text
-        nodeElement.style.transition = 'transform 1s ease-in-out';
-        nodeValueElement.style.transition = 'transform 1s ease-in-out';
+    moveNodeUp(nodeToMove, targetPosition) {
+        const svgContainer = d3.select('#tree svg');
+        const nodeCircle = svgContainer.select(`circle#node-${nodeToMove.value}`);
+        const nodeText = svgContainer.select(`text#text-${nodeToMove.value}`);
+        const targetCircle = svgContainer.select(`circle#node-${targetPosition.value}`);
 
-        // Calculate the movement based on the target X and Y positions
-        nodeElement.style.transform = `translate(${targetX - startX}px, ${targetY - startY}px)`;
-        nodeValueElement.style.transform = `translate(${targetX - startX}px, ${targetY - startY}px)`;
+        if (!nodeCircle.empty() && !targetCircle.empty()) {
+            const targetX = parseFloat(targetCircle.attr('cx'));
+            const targetY = parseFloat(targetCircle.attr('cy'));
 
-        // Update position after the transition completes (for final positions)
-        setTimeout(() => {
-            nodeElement.setAttribute('cx', targetX);
-            nodeElement.setAttribute('cy', targetY);
-            nodeValueElement.setAttribute('x', targetX);  // Move the text to the target X position
-            nodeValueElement.setAttribute('y', targetY + 4);  // Adjust Y for proper centering in the circle
-            nodeElement.style.transform = '';  // Clear the transformation
-            nodeValueElement.style.transform = '';  // Clear the transformation
-        }, 10000); // Matches the transition duration
+            // Animate the node circle moving up
+            nodeCircle.transition()
+                .duration(1000)
+                .attr('cx', targetX)
+                .attr('cy', targetY);
+
+            // Animate the node text moving up
+            nodeText.transition()
+                .duration(1000)
+                .attr('x', targetX)
+                .attr('y', targetY + 4); // Adjust y position for text centering
+        }
     }
 
     // This method searches for a node with the specified value in the Red-Black Tree.
@@ -817,6 +862,37 @@ function insertNode() {
     traverseTree();
 }
 
+// Helper function to animate node movement smoothly, including the node value (text)
+function animateNode(nodeValue, targetX, targetY) {
+        const svgContainer = d3.select('#tree svg');
+    
+        // Select the circle and text elements using D3.js
+        const circle = svgContainer.select(`circle#node-${nodeValue}`);
+        const text = svgContainer.select(`text#text-${nodeValue}`);
+    
+        if (!circle.empty() && !text.empty()) {
+            // Use D3 transitions to animate movement of the circle
+            circle.transition()
+                .duration(1000) // Adjust the duration as needed
+                .attr('cx', targetX)
+                .attr('cy', targetY);
+    
+            // Use D3 transitions to animate movement of the text
+            text.transition()
+                .duration(1000) // Ensure the duration matches the circle's transition
+                .attr('x', targetX)
+                .attr('y', targetY + 4); // Adjust y position for text centering
+    
+            // Optionally, after the transition completes, you can update the data attributes
+            setTimeout(() => {
+                circle.attr('cx', targetX).attr('cy', targetY);
+                text.attr('x', targetX).attr('y', targetY + 4);
+            }, 1000); // Match this timeout to the duration of the transition
+        } else {
+            console.error(`Could not find elements for node with value ${nodeValue}`);
+        }
+}
+
 // This function renders a node of the Red-Black Tree and its connections in the DOM.
 function renderNode(node, container, parentNode, isLeft) {
     const element = document.createElement('div');
@@ -863,17 +939,89 @@ function renderNode(node, container, parentNode, isLeft) {
 }
 
 // This function deletes a node with the specified value from the Red-Black Tree.
-function deleteNode() {
-    const value = document.getElementById('nodeValue').value; // Get the value from the input field with the id 'nodeValue'.
-
-    // Check if the value is not provided or is not a number.
-    if (!value || isNaN(value)) {
-        // Alert the user to enter a valid number.
-        alert('Please enter a valid number.');
+async function deleteNode() {
+    const value = parseInt(document.getElementById('nodeValue').value);
+    if (isNaN(value)) {
+        alert('Please enter a valid node value.');
         return;
     }
-    tree.delete(Number(value)); // Delete the node with the given value from the Red-Black Tree.
-    renderTree(); // Render the tree to visualize the current state after deletion.
+
+    // Perform traversal animation to the node to be deleted
+    let currentNode = tree.root;
+
+    // Create or select the SVG circle for highlighting
+    let svg = document.getElementById('highlightCircle');
+    if (!svg) {
+        svg = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        svg.setAttribute("id", "highlightCircle");
+        svg.setAttribute("r", 20); // Circle radius
+        svg.setAttribute("fill", "none");
+        svg.setAttribute("stroke", "yellow"); // Initial stroke color is yellow for traversal
+        svg.setAttribute("stroke-width", 4);
+        document.querySelector('svg').appendChild(svg);
+    } else {
+        svg.setAttribute("stroke", "yellow"); // Reset the stroke color to yellow
+    }
+
+    // Create a promise-based traversal function
+    const nodeToDelete = await traverseToDelete(currentNode, null, value, svg);
+
+    if (!nodeToDelete) {
+        alert('Node not found.');
+        return;
+    }
+
+    // Highlight relationships before deletion
+    await highlightRelationships(nodeToDelete);
+
+    // Proceed to delete the node (fade-out handled inside the delete method)
+    await tree.delete(nodeToDelete.value);
+
+    // Render the tree to visualize the current state after deletion
+    renderTree();
+}
+
+
+async function traverseToDelete(node, parentElement, value, svg) {
+    if (!node) {
+        // Node not found
+        return null;
+    }
+
+    const nodeElement = document.getElementById(`node-${node.value}`);
+    if (!nodeElement) {
+        console.error(`Node element for node ${node.value} not found!`);
+        return null;
+    }
+
+    // Animate movement from parent node to current node
+    if (parentElement) {
+        await moveHighlightTo(svg, parentElement, nodeElement, 1000); // Move the circle over 1000ms
+    } else {
+        // If we're at the root, place the circle there
+        await moveHighlightTo(svg, null, nodeElement, 0); // No movement (circle starts here)
+    }
+
+    // Wait for 2 seconds before evaluating the node
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    if (node.value === value) {
+        // Flash green to signal that this is the node to be deleted
+        nodeElement.classList.add('blink-green');
+        svg.setAttribute("stroke", "green"); // Change the circle to green
+
+        // Wait for blinking to finish
+        await new Promise(resolve => setTimeout(resolve, 1500));
+
+        // Remove the circle after blinking is complete
+        svg.remove();
+        clearBlink(nodeElement, node.color); // Restore the node's original color
+        return node; // Node found
+    } else {
+        // Continue traversal
+        const nextNode = value < node.value ? node.left : node.right;
+        return await traverseToDelete(nextNode, nodeElement, value, svg);
+    }
 }
 
 function searchNode() {
@@ -942,78 +1090,68 @@ function searchNode() {
     traverse(currentNode, null); // Start traversal from the root
 }
 
+function moveHighlightTo(circle, startNodeElement, endNodeElement, duration = 1000) {
+    return new Promise((resolve) => {
+        if (!endNodeElement) {
+            console.error("End node element is null, cannot highlight.");
+            resolve();
+            return;
+        }
 
-function moveHighlightTo(circle, startNodeElement, endNodeElement, duration = 1000) { //56
-    // Ensure endNodeElement exists before proceeding
-    if (!endNodeElement) {
-        console.error("End node element is null, cannot highlight.");
-        return;
-    }
-
-    // If this is the first node (root), move the circle there directly
-    if (!startNodeElement) {
-        const endX = parseFloat(endNodeElement.getAttribute('cx'));
-        const endY = parseFloat(endNodeElement.getAttribute('cy'));
-        circle.setAttribute("cx", endX);
-        circle.setAttribute("cy", endY);
-        return;
-    }
-
-    // Otherwise, interpolate movement from start to end
-    const startX = parseFloat(startNodeElement.getAttribute('cx'));
-    const startY = parseFloat(startNodeElement.getAttribute('cy'));
-    const endX = parseFloat(endNodeElement.getAttribute('cx'));
-    const endY = parseFloat(endNodeElement.getAttribute('cy'));
-
-    const deltaX = endX - startX;
-    const deltaY = endY - startY;
-
-    const frames = 60; // Number of frames for the animation
-    const frameDuration = duration / frames;
-
-    let currentFrame = 0;
-
-    function animateStep() {
-        if (currentFrame < frames) {
-            const progress = currentFrame / frames;
-
-            // Interpolate between start and end positions
-            const currentX = startX + deltaX * progress;
-            const currentY = startY + deltaY * progress;
-
-            // Update circle position
-            circle.setAttribute("cx", currentX);
-            circle.setAttribute("cy", currentY);
-
-            currentFrame++;
-            setTimeout(animateStep, frameDuration);
-        } else {
-            // Ensure the circle lands precisely at the end position
+        // If this is the first node (root), move the circle there directly
+        if (!startNodeElement) {
+            const endX = parseFloat(endNodeElement.getAttribute('cx'));
+            const endY = parseFloat(endNodeElement.getAttribute('cy'));
             circle.setAttribute("cx", endX);
             circle.setAttribute("cy", endY);
+            resolve();
+            return;
         }
-    }
 
-    animateStep(); // Start the animation
+        // Otherwise, interpolate movement from start to end
+        const startX = parseFloat(startNodeElement.getAttribute('cx'));
+        const startY = parseFloat(startNodeElement.getAttribute('cy'));
+        const endX = parseFloat(endNodeElement.getAttribute('cx'));
+        const endY = parseFloat(endNodeElement.getAttribute('cy'));
+
+        const deltaX = endX - startX;
+        const deltaY = endY - startY;
+
+        const frames = 60; // Number of frames for the animation
+        const frameDuration = duration / frames;
+
+        let currentFrame = 0;
+
+        function animateStep() {
+            if (currentFrame < frames) {
+                const progress = currentFrame / frames;
+
+                // Interpolate between start and end positions
+                const currentX = startX + deltaX * progress;
+                const currentY = startY + deltaY * progress;
+
+                // Update circle position
+                circle.setAttribute("cx", currentX);
+                circle.setAttribute("cy", currentY);
+
+                currentFrame++;
+                setTimeout(animateStep, frameDuration);
+            } else {
+                // Ensure the circle lands precisely at the end position
+                circle.setAttribute("cx", endX);
+                circle.setAttribute("cy", endY);
+                resolve();
+            }
+        }
+
+        animateStep(); // Start the animation
+    });
 }
-
-
-
 
 function clearBlink(nodeElement, originalColor) {
     nodeElement.classList.remove('blink-red', 'blink-green');
     nodeElement.style.backgroundColor = originalColor; // Restore original background color
 }
-
-
-
-
-
-
-
-
-
-
 
 // Function to render Predefined Tree 1 (Depth: 2)
 function renderPredefinedTree1() {
@@ -1044,10 +1182,10 @@ function renderPredefinedTree2() {
 
     // Structure: Depth 3
     predefinedTree.root = new Node(20, 'black');
-    predefinedTree.root.left = new Node(10, 'red');
-    predefinedTree.root.right = new Node(30, 'red');
-    predefinedTree.root.left.left = new Node(5, 'black');
-    predefinedTree.root.left.right = new Node(15, 'black');
+    predefinedTree.root.left = new Node(10, 'black');
+    predefinedTree.root.right = new Node(30, 'black');
+    predefinedTree.root.left.left = new Node(5, 'red');
+    predefinedTree.root.left.right = new Node(15, 'red');
 
     // Link parent-child relationships
     predefinedTree.root.left.parent = predefinedTree.root;
@@ -1069,11 +1207,11 @@ function renderPredefinedTree3() {
     // Structure: Depth 4
     predefinedTree.root = new Node(50, 'black');
     predefinedTree.root.left = new Node(30, 'red');
-    predefinedTree.root.right = new Node(70, 'red');
+    predefinedTree.root.right = new Node(70, 'black');
     predefinedTree.root.left.left = new Node(20, 'black');
     predefinedTree.root.left.right = new Node(40, 'black');
-    predefinedTree.root.right.left = new Node(60, 'black');
-    predefinedTree.root.right.right = new Node(80, 'black');
+    predefinedTree.root.right.left = new Node(60, 'red');
+    predefinedTree.root.right.right = new Node(80, 'red');
     predefinedTree.root.left.left.left = new Node(10, 'red');
 
     // Link parent-child relationships
@@ -1088,10 +1226,6 @@ function renderPredefinedTree3() {
     tree.root = predefinedTree.root; 
     renderTree(); 
 }
-
-
-
-
 
 document.addEventListener("DOMContentLoaded", function() {
     // Function to open the modal for predefined tree or traversal selection
@@ -1138,7 +1272,6 @@ document.addEventListener("DOMContentLoaded", function() {
         startAnimatedTraversal('postOrder');
     };
 });
-
 
 function ensureHighlightCircle() {
     let svgContainer = document.getElementById('svgCanvas');
@@ -1218,7 +1351,6 @@ function moveHighlightToPrint(circle, startNodeElement, endNodeElement, duration
 
     animateStep(); // Start the animation
 }
-
 
 // Function to start the animated traversal based on the selected type
 function startAnimatedTraversal(type) {
@@ -1304,29 +1436,79 @@ async function animatePostOrder(node, circle, previousNodeElement = null) {
     }
 }
 
-
-
-
 // Function to print the node value at the bottom of the tree container
 function printNodeValue(value) {
     const resultContainer = document.getElementById("traversalResult");
     resultContainer.innerHTML += `<span style="margin-right: 10px;">${value}</span>`; // Append the node value with spacing
 }
 
+async function highlightRelationships(node) {
+    let svgContainer = document.getElementById('svgCanvas');
+    if (!svgContainer) {
+        const treeContainer = document.getElementById('tree');
+        svgContainer = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svgContainer.setAttribute('id', 'svgCanvas');
+        treeContainer.appendChild(svgContainer);
+    }
 
+    const nodeElement = document.getElementById(`node-${node.value}`);
+    const parentElement = node.parent ? document.getElementById(`node-${node.parent.value}`) : null;
+    const leftChildElement = node.left ? document.getElementById(`node-${node.left.value}`) : null;
+    const rightChildElement = node.right ? document.getElementById(`node-${node.right.value}`) : null;
 
+    // Function to draw and animate a line
+    const drawLine = (from, to, color) => {
+        if (from && to) {
+            let fromCenter = getCenter(from);
+            let toCenter = getCenter(to);
+            let line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            line.setAttribute('x1', fromCenter.centerX);
+            line.setAttribute('y1', fromCenter.centerY);
+            line.setAttribute('x2', toCenter.centerX);
+            line.setAttribute('y2', toCenter.centerY);
+            line.setAttribute('stroke', color);
+            line.setAttribute('stroke-width', 3);
+            svgContainer.appendChild(line);
 
+            // Optional: Animate the line
+            line.style.transition = 'stroke-dashoffset 1s ease-in-out';
+            line.setAttribute('stroke-dasharray', `${Math.sqrt(Math.pow(toCenter.centerX - fromCenter.centerX, 2) + Math.pow(toCenter.centerY - fromCenter.centerY, 2))}`);
+            line.setAttribute('stroke-dashoffset', `${Math.sqrt(Math.pow(toCenter.centerX - fromCenter.centerX, 2) + Math.pow(toCenter.centerY - fromCenter.centerY, 2))}`);
+            setTimeout(() => {
+                line.setAttribute('stroke-dashoffset', '0');
+            }, 100);
 
+            return line;
+        }
+        return null;
+    };
 
+    let lines = [];
+    if (parentElement) {
+        lines.push(drawLine(nodeElement, parentElement, 'yellow'));
+    }
+    if (leftChildElement) {
+        lines.push(drawLine(nodeElement, leftChildElement, 'yellow'));
+    }
+    if (rightChildElement) {
+        lines.push(drawLine(nodeElement, rightChildElement, 'yellow'));
+    }
 
+    // Wait a moment before fading or continuing with deletion
+    await new Promise(resolve => setTimeout(resolve, 4000));
 
+    // Fade out or remove lines if moving to deletion
+    lines.forEach(line => svgContainer.removeChild(line));
+}
 
-
-
-
-
-
-
+function getCenter(element) {
+    const rect = element.getBoundingClientRect();
+    const treeContainerRect = document.getElementById('tree').getBoundingClientRect();
+    return {
+        centerX: rect.left + rect.width / 2 - treeContainerRect.left,
+        centerY: rect.top + rect.height / 2 - treeContainerRect.top
+    };
+}
 
 // This function visualizes the Red-Black Tree and optionally highlights a specific node.
 function renderTree(foundNode = null) {
@@ -1470,6 +1652,7 @@ function renderTree(foundNode = null) {
         .data(nodes)
         .enter()
         .append('text')
+        .attr('id', d => `text-${d.node.value}`) 
         .attr('x', d => d.x)
         .attr('y', d => d.y + 4)
         .attr('text-anchor', 'middle')

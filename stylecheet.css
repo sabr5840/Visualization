@@ -206,7 +206,7 @@ button:active {
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: rgb(173, 126, 126);
+    background-color: rgba(178, 178, 178, 0.206);
 
 }
 
@@ -233,11 +233,7 @@ button:active {
     }
 }
 
-.null-node {
-    background-color: black;
-    color: white;
-    border: 1px dashed white;
-}
+
 
 @keyframes blink-red-line {
     0% { stroke: red; }
@@ -258,6 +254,8 @@ button:active {
 .pulse-red-line {
     animation: pulse-red-line 1s infinite ease-in-out;
 }
+
+
 
 
 .modal {

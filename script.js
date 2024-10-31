@@ -8,7 +8,6 @@ class Node {
         this.right = null;
         this.parent = null;
     }
-    
 }
 
 //new class which represents the entire tree structure.
@@ -535,8 +534,6 @@ class RedBlackTree {
         }
     }
     
-      
-    
     findNode(value) {
         let current = this.root;// Start the search from the root of the tree.
         while (current !== null && current.value !== value) { // Traverse the tree until the node is found or we reach a null reference.
@@ -640,7 +637,6 @@ class RedBlackTree {
         }
         if (x !== null) await this.recolorBlack(x);
     }
-    
     
     async blinkNode(node, finalColor, duration = 1000) {
         const nodeElement = document.getElementById(`node-${node.value}`);
@@ -981,7 +977,6 @@ async function deleteNode() {
     renderTree();
 }
 
-
 async function traverseToDelete(node, parentElement, value, svg) {
     if (!node) {
         // Node not found
@@ -1033,25 +1028,37 @@ function searchNode() {
 
     let currentNode = tree.root;
 
-    // Create or select the SVG circle for highlighting
-    let svg = document.getElementById('highlightCircle');
-    if (!svg) {
-        svg = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-        svg.setAttribute("id", "highlightCircle");
-        svg.setAttribute("r", 20); // Circle radius
-        svg.setAttribute("fill", "none");
-        svg.setAttribute("stroke", "red"); // Initial stroke color is red
-        svg.setAttribute("stroke-width", 4);
-        document.querySelector('svg').appendChild(svg);
+    // Ensure the highlight circle exists
+    let svgContainer = document.getElementById('svgCanvas');
+    if (!svgContainer) {
+        const treeContainer = document.getElementById('tree');
+        svgContainer = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svgContainer.setAttribute('id', 'svgCanvas');
+        svgContainer.setAttribute('width', '100%');
+        svgContainer.setAttribute('height', '100%');
+        treeContainer.appendChild(svgContainer);
+    }
+
+    let circle = document.getElementById('highlightCircle');
+    if (!circle) {
+        circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circle.setAttribute("id", "highlightCircle");
+        circle.setAttribute("r", 20); // Circle radius
+        circle.setAttribute("fill", "none");
+        circle.setAttribute("stroke", "yellow"); // Initial stroke color is yellow for traversal
+        circle.setAttribute("stroke-width", 4);
+        svgContainer.appendChild(circle);
+    } else {
+        circle.setAttribute("stroke", "yellow"); // Reset the stroke color to yellow
     }
 
     // Traversing function to search for the target node
     function traverse(node, parentElement) {
-        if (!node) return; // Stop if the node is null
+        if (!node || node.value === 'NIL') return; // Skip null nodes and null leaves
 
         const nodeElement = document.getElementById(`node-${node.value}`);
-        if (!nodeElement) {
-            console.error(`Node element for node ${node.value} not found!`);
+        if (!nodeElement || node.isNull) {
+            console.error(`Node element for node ${node.value} not found or is a null node!`);
             return;
         }
 
@@ -1059,22 +1066,22 @@ function searchNode() {
 
         // Animate movement from parent node to current node
         if (parentElement) {
-            moveHighlightTo(svg, parentElement, nodeElement, 1000); // Move the circle over 1000ms
+            moveHighlightTo(circle, parentElement, nodeElement, 1000); // Move the circle over 1000ms
         } else {
             // If we're at the root, place the circle there
-            moveHighlightTo(svg, null, nodeElement, 0); // No movement (circle starts here)
+            moveHighlightTo(circle, null, nodeElement, 0); // No movement (circle starts here)
         }
 
-        // Timer to wait for 2 seconds before stopping at the node
+        // Timer to wait for 2 seconds before evaluating the node
         setTimeout(() => {
             // If it's the correct node, change circle color to green and add blinking effect
             if (node.value === targetValue) {
                 nodeElement.classList.add('blink-green');
-                svg.setAttribute("stroke", "green"); // Change the circle to green
+                circle.setAttribute("stroke", "green"); // Change the circle to green
 
                 // Remove the circle after blinking is complete
                 setTimeout(() => {
-                    svg.remove(); // Remove the circle after blinking
+                    circle.remove(); // Remove the circle after blinking
                     clearBlink(nodeElement, originalColor); // Restore the node's original color
                 }, 1500); // Keep the circle green for 1.5 seconds
 
@@ -1084,11 +1091,12 @@ function searchNode() {
             // If not the correct node, continue the search
             const nextNode = targetValue < node.value ? node.left : node.right;
             traverse(nextNode, nodeElement); // Traverse left or right child
-        }, 2000); // Stop at the node for 2 seconds before evaluating the next node
+        }, 2000); // Wait at the node for 2 seconds before proceeding
     }
 
     traverse(currentNode, null); // Start traversal from the root
 }
+
 
 function moveHighlightTo(circle, startNodeElement, endNodeElement, duration = 1000) {
     return new Promise((resolve) => {
@@ -1298,7 +1306,6 @@ function ensureHighlightCircle() {
     return circle;
 }
 
-
 function moveHighlightToPrint(circleElement, endNodeElement, duration = 1000) {
     return new Promise((resolve) => {
         if (!endNodeElement) {
@@ -1318,7 +1325,6 @@ function moveHighlightToPrint(circleElement, endNodeElement, duration = 1000) {
             .on('end', resolve);
     });
 }
-
 
 // Function to start the animated traversal based on the selected type
 function startAnimatedTraversal(type) {
@@ -1358,10 +1364,9 @@ function startAnimatedTraversal(type) {
     });
 }
 
-
 // Traverse the tree in in-order and animate the highlight circle
 async function animateInOrder(node, circleElement, traversalState) {
-    if (node !== null) {
+    if (node !== null && node.value !== 'NIL') {
         await animateInOrder(node.left, circleElement, traversalState);
 
         const nodeElement = document.getElementById(`node-${node.value}`);
@@ -1377,10 +1382,9 @@ async function animateInOrder(node, circleElement, traversalState) {
     }
 }
 
-
 // Similar adjustments for Pre-Order and Post-Order functions
 async function animatePreOrder(node, circleElement, traversalState) {
-    if (node !== null) {
+    if (node !== null && node.value !== 'NIL') {
         const nodeElement = document.getElementById(`node-${node.value}`);
         console.log(`Pre-order: Moving highlight to ${nodeElement.id}`);
         await moveHighlightToPrint(circleElement, nodeElement, 1000);
@@ -1394,9 +1398,8 @@ async function animatePreOrder(node, circleElement, traversalState) {
     }
 }
 
-
 async function animatePostOrder(node, circleElement, traversalState) {
-    if (node !== null) {
+    if (node !== null && node.value !== 'NIL') {
         await animatePostOrder(node.left, circleElement, traversalState);
         await animatePostOrder(node.right, circleElement, traversalState);
 
@@ -1410,7 +1413,6 @@ async function animatePostOrder(node, circleElement, traversalState) {
         traversalState.previousNodeElement = nodeElement;
     }
 }
-
 
 // Function to print the node value at the bottom of the tree container
 function printNodeValue(value) {
@@ -1488,65 +1490,68 @@ function getCenter(element) {
 
 // This function visualizes the Red-Black Tree and optionally highlights a specific node.
 function renderTree(foundNode = null) {
-    // Get the container element where the tree will be rendered and clear its contents.
     const treeContainer = document.getElementById('tree');
     treeContainer.innerHTML = '';
 
-    // Get the dimensions of the container for setting up the SVG.
     const width = treeContainer.clientWidth;
     const height = treeContainer.clientHeight;
 
-    // Arrays to store nodes and links for rendering.
     const nodes = [];
     const links = [];
 
-    // Helper function to traverse the tree and collect nodes and links.
+    const showNullLeaves = document.getElementById('showNullLeavesCheckbox').checked;
+
     function traverse(node, x, y, level, xOffset) {
         if (node !== null) {
-            nodes.push({ node, x, y });
+            nodes.push({ node, x, y, isNull: node.value === 'NIL' });
 
-            // Calculate new y based on the depth (level) of the node
-            const ySpacing = 80; // Adjust this value for more spacing between levels
+            const ySpacing = 80;
             const newY = y + ySpacing;
 
             if (node.left !== null) {
-                const newXOffset = xOffset / 1.5; // Adjust this as needed
+                const newXOffset = xOffset / 1.5;
                 links.push({ source: { x, y }, target: { x: x - xOffset, y: newY } });
                 traverse(node.left, x - xOffset, newY, level + 1, newXOffset);
+            } else if (showNullLeaves) {
+                const newXOffset = xOffset / 1.5;
+                const nullNode = new Node('NIL', 'black');
+                nodes.push({ node: nullNode, x: x - xOffset, y: newY, isNull: true });
+                links.push({ source: { x, y }, target: { x: x - xOffset, y: newY } });
             }
 
             if (node.right !== null) {
-                const newXOffset = xOffset / 1.5; // Adjust this as needed
+                const newXOffset = xOffset / 1.5;
                 links.push({ source: { x, y }, target: { x: x + xOffset, y: newY } });
                 traverse(node.right, x + xOffset, newY, level + 1, newXOffset);
+            } else if (showNullLeaves) {
+                const newXOffset = xOffset / 1.5;
+                const nullNode = new Node('NIL', 'black');
+                nodes.push({ node: nullNode, x: x + xOffset, y: newY, isNull: true });
+                links.push({ source: { x, y }, target: { x: x + xOffset, y: newY } });
             }
         }
     }
 
-    // Start the traversal from the root node, centered horizontally, and at a starting vertical position.
-    traverse(tree.root, width / 2, 30, 1, width / 12);  // Width divided by 12 for even tighter spacing
+    traverse(tree.root, width / 2, 30, 1, width / 12);
 
-    // Create and configure the SVG container for rendering the tree.
     const svgContainer = d3.select('#tree').append('svg')
         .attr('width', width)
         .attr('height', height)
         .attr('viewBox', `0 0 ${width} ${height}`);
 
-    // Add arrow markers to the SVG for use in the links (edges).
     svgContainer.append('defs')
         .append('marker')
         .attr('id', 'arrow')
         .attr('viewBox', '0 0 10 10')
-        .attr('refX', 10)  
+        .attr('refX', 10)
         .attr('refY', 5)
         .attr('markerWidth', 6)
         .attr('markerHeight', 6)
         .attr('orient', 'auto-start-reverse')
         .append('path')
-        .attr('d', 'M 0 0 L 10 5 L 0 10 z')  // Define the arrow shape
+        .attr('d', 'M 0 0 L 10 5 L 0 10 z')
         .attr('fill', 'black');
 
-    // Render the links (edges) between nodes.
     const linkSelection = svgContainer.selectAll('line')
         .data(links);
 
@@ -1554,92 +1559,73 @@ function renderTree(foundNode = null) {
         .append('line')
         .attr('x1', d => d.source.x)
         .attr('y1', d => d.source.y)
-        .attr('x2', d => {
-            // Shorten the x2 by 15 (node radius) to prevent arrow from overlapping node
-            const dx = d.target.x - d.source.x;
-            const dy = d.target.y - d.source.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            const scale = (distance - 15) / distance;  // Shorten by node radius
-            return d.source.x + dx * scale;
-        })
-        .attr('y2', d => {
-            // Shorten the y2 by 15 (node radius) to prevent arrow from overlapping node
-            const dx = d.target.x - d.source.x;
-            const dy = d.target.y - d.source.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            const scale = (distance - 15) / distance;  // Shorten by node radius
-            return d.source.y + dy * scale;
-        })
+        .attr('x2', d => d.target.x)
+        .attr('y2', d => d.target.y)
         .attr('stroke', 'black')
-        .attr('stroke-width', 2)  // Ensure the stroke is wide enough
-        .attr('marker-end', 'url(#arrow)')  // Add the arrow marker to the end of the line
-        .transition()
-        .duration(500)
-        .attr('x2', d => {
-            // Shorten the x2 by 15 (node radius) to prevent arrow from overlapping node
-            const dx = d.target.x - d.source.x;
-            const dy = d.target.y - d.source.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            const scale = (distance - 15) / distance;  // Shorten by node radius
-            return d.source.x + dx * scale;
-        })
-        .attr('y2', d => {
-            // Shorten the y2 by 15 (node radius) to prevent arrow from overlapping node
-            const dx = d.target.x - d.source.x;
-            const dy = d.target.y - d.source.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            const scale = (distance - 15) / distance;  // Shorten by node radius
-            return d.source.y + dy * scale;
-        });
+        .attr('stroke-width', 2)
+        .attr('marker-end', 'url(#arrow)');
 
-    linkSelection.exit()
-        .transition()
-        .duration(500)
-        .attr('x2', d => d.source.x)
-        .attr('y2', d => d.source.y)
-        .remove();
+    // Separate nodes into non-null and null nodes
+    const nonNullNodes = nodes.filter(d => !d.isNull);
+    const nullNodes = nodes.filter(d => d.isNull);
 
-    // Render the nodes (circles) for non-null nodes.
-    const nodeSelection = svgContainer.selectAll('circle')
-        .data(nodes.filter(d => d.node.value !== 'NIL'));
-
-    nodeSelection.enter()
+    // Render non-null nodes (circles)
+    svgContainer.selectAll('circle')
+        .data(nonNullNodes)
+        .enter()
         .append('circle')
         .attr('cx', d => d.x)
         .attr('cy', d => d.y)
         .attr('r', 15)
-        .attr('fill', d => d.node.color) // Set the fill based on the original color of the node (red or black)
+        .attr('fill', d => d.node.color)
         .attr('stroke', 'black')
         .attr('stroke-width', 2)
-        .attr('id', d => `node-${d.node.value}`) // Assign an ID to each circle
-        .transition()
-        .duration(500)
-        .attr('cx', d => d.x)
-        .attr('cy', d => d.y);
+        .attr('id', d => `node-${d.node.value}`)
+        .on('mouseover', function(d) {
+            d3.select(this).attr('stroke', 'blue');
+        })
+        .on('mouseout', function(d) {
+            d3.select(this).attr('stroke', 'black');
+        });
 
-    nodeSelection.exit()
-        .transition()
-        .duration(500)
-        .attr('r', 0)
-        .remove();
+    // Render null nodes (squares)
+    svgContainer.selectAll('.null-node')
+        .data(nullNodes)
+        .enter()
+        .append('rect')
+        .attr('x', d => d.x - 15)
+        .attr('y', d => d.y - 15)
+        .attr('width', 30)
+        .attr('height', 30)
+        .attr('fill', 'black')
+        .attr('stroke', 'darkgray')
+        .attr('stroke-width', 2)
+        .attr('id', d => `node-${d.node.value}`)
+        .attr('class', 'null-node');
 
-    // Render the node values (text labels) inside the nodes.
+    // Render text labels for all nodes
     svgContainer.selectAll('text')
         .data(nodes)
         .enter()
         .append('text')
-        .attr('id', d => `text-${d.node.value}`) 
+        .attr('id', d => `text-${d.node.value}`)
         .attr('x', d => d.x)
         .attr('y', d => d.y + 4)
         .attr('text-anchor', 'middle')
-        .attr('fill', 'white')
+        .attr('fill', d => d.isNull ? 'white' : 'white')
+        .style('font-weight', d => d.isNull ? 'bold' : 'normal') // Bold text for null nodes
         .text(d => d.node.value);
 
-    // If a specific node is provided, make it blink.
     if (foundNode) {
         blinkNode(foundNode);
     }
 }
+
+
+document.getElementById('showNullLeavesCheckbox').addEventListener('change', function() {
+    renderTree(); // Re-render the tree whenever the checkbox state changes
+});
+
 
 document.getElementById('nodeValue').addEventListener('keypress', function (e) {
     if (e.key === 'Enter') {
